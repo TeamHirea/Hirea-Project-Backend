@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const authModel = require("../models/auth");
 const wrapper = require("../utils/responseHandler");
 
-module.export = {
+module.exports = {
   signupRecruiter: async (request, response) => {
     try {
       const {
