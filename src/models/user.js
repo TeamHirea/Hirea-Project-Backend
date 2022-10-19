@@ -33,6 +33,7 @@ module.exports = {
         .from("recruiter")
         .update(data)
         .eq("id", userId)
+        .select("*")
         .then((result) => {
           if (!result.error) {
             resolve(result);

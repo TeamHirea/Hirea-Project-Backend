@@ -1,6 +1,8 @@
 const random = require("simple-random-number-generator");
 
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const validator = require("validator");
 const authModel = require("../models/auth");
 const wrapper = require("../utils/responseHandler");
 const userModel = require("../models/user");
@@ -20,7 +22,7 @@ module.exports = {
         password,
         confirmPassword,
       } = request.body;
-      const checkEmail = await authModel.getUserByEmail(email);
+      const checkEmail = await authModel.getRecruiterByEmail(email);
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -85,9 +87,8 @@ module.exports = {
       };
 
       await sendEmail(setMailOptions);
-
       // save OTP in redis
-      client.setEx(`otp:${otp}`, 3600, userId);
+      client.client.setEx(`otp:${otp}`, 3600, userId);
 
       return wrapper.response(
         response,
@@ -96,6 +97,7 @@ module.exports = {
         { id: userId }
       );
     } catch (error) {
+      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -108,10 +110,11 @@ module.exports = {
     try {
       const { otp } = request.params;
 
-      const checkOTP = await client.get(`otp:${otp}`);
+      const checkOTP = await client.client.get(`otp:${otp}`);
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
       });
+
       if (!checkOTP) {
         return wrapper.response(response, 403, "Wrong OTP", null);
       }
@@ -121,7 +124,8 @@ module.exports = {
       };
       const result = await userModel.updateUser(checkOTP, setData);
 
-      client.del(`otp:${otp}`);
+      client.client.del(`otp:${otp}`);
+      console.log(typeof checkOTP);
       return wrapper.response(
         response,
         result.status,
@@ -129,7 +133,7 @@ module.exports = {
         { userId: checkOTP }
       );
     } catch (error) {
-      // console.log(error);
+      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -224,6 +228,65 @@ module.exports = {
         error: errorData = null,
       } = error;
       return wrapper.response(response, status, statusText, errorData);
+    }
+  },
+
+  signinRecretuier: async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!validator.isEmail(email)) {
+        return wrapper.response(res, 401, "invalid email format", null);
+      }
+      // 1. PROSES PENGECEKAN EMAIL
+      const checkEmail = await authModel.getRecruiterByEmail(email);
+      if (checkEmail.data.length < 1) {
+        return wrapper.response(res, 404, "Wrong email input", null);
+      }
+
+      const validate = await bcrypt.compare(
+        password,
+        checkEmail.data[0].password
+      );
+
+      // 2. PROSES PENCOCOKAN PASSWORD
+      if (!validate) {
+        return wrapper.response(res, 401, "Wrong Password!", null);
+      }
+
+      if (checkEmail.data[0].statusUser !== "active") {
+        return wrapper.response(res, 401, "Verify your email first", null);
+      }
+
+      const payload = {
+        userId: checkEmail.data[0].userId,
+      };
+
+      const token = jwt.sign(payload, process.env.JWT_PRIVATE_ACCESS_KEY, {
+        expiresIn: "1d",
+      });
+
+      // membuat refresh token
+      const refreshToken = jwt.sign(
+        payload,
+        process.env.JWT_PRIVATE_REFRESH_KEY,
+        {
+          expiresIn: "36h",
+        }
+      );
+      // 4. PROSES REPON KE USER
+      return wrapper.response(res, 200, "Success Login", {
+        userId: payload.userId,
+        token,
+        refreshToken,
+      });
+    } catch (error) {
+      console.log(error);
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(res, status, statusText, errorData);
     }
   },
 };
