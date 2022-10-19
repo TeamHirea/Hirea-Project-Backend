@@ -14,4 +14,18 @@ module.exports = {
           }
         });
     }),
+  updateUser: (userId, data) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("recruiter")
+        .update(data)
+        .eq("id", userId)
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
 };
