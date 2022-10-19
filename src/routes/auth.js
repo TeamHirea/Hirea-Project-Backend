@@ -6,6 +6,7 @@ const authController = require("../controllers/auth");
 const Router = express.Router();
 
 Router.post("/register/recruiter", authController.signupRecruiter);
+Router.get("/verify/:otp", authController.verify);
 Router.post("/signin/recruiter", authController.signinRecretuier);
 
 module.exports = Router;

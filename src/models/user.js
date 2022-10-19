@@ -7,7 +7,21 @@ module.exports = {
         .from("recruiter")
         .insert([data])
         .then((result) => {
-          console.log(result);
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
+  updateUser: (userId, data) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("recruiter")
+        .update(data)
+        .eq("id", userId)
+        .select("*")
+        .then((result) => {
           if (!result.error) {
             resolve(result);
           } else {
