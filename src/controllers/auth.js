@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const authModel = require("../models/auth");
 const wrapper = require("../utils/responseHandler");
+const userModel = require("../models/user");
 
 module.exports = {
   signupRecruiter: async (request, response) => {
@@ -51,13 +52,14 @@ module.exports = {
         );
       }
       // save data by model
-      //   const result = await userModel.createUser(setData);
+      const result = await userModel.createRecruiter(setData);
+      console.log(result.data);
 
       return wrapper.response(
         response,
         200,
         "Success Register Please Check Your Email",
-        null
+        result
       );
     } catch (error) {
       const {
