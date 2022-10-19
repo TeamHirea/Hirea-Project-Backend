@@ -1,3 +1,5 @@
+// const random = require("simple-random-number-generator");
+
 const bcrypt = require("bcrypt");
 const authModel = require("../models/auth");
 const wrapper = require("../utils/responseHandler");
@@ -40,7 +42,6 @@ module.exports = {
           null
         );
       }
-      console.log(setData);
 
       // check email in database
       if (checkEmail.data.length > 0) {
@@ -51,15 +52,23 @@ module.exports = {
           null
         );
       }
+
       // save data by model
-      const result = await userModel.createRecruiter(setData);
-      console.log(result.data);
+      await userModel.createRecruiter(setData);
+      const getDataUser = await authModel.getUserByEmail(email);
+      delete getDataUser.data[0].password;
+
+      // const otp = {
+      //   min: 100000,
+      //   max: 999999,
+      //   integer: true,
+      // };
 
       return wrapper.response(
         response,
         200,
         "Success Register Please Check Your Email",
-        result
+        getDataUser.data
       );
     } catch (error) {
       const {
