@@ -1,12 +1,11 @@
 const supabase = require("../config/supabase");
 
 module.exports = {
-  getRecruiterByEmail: (email) =>
+  createRecruiter: (data) =>
     new Promise((resolve, reject) => {
       supabase
         .from("recruiter")
-        .select("*")
-        .eq("email", email)
+        .insert([data])
         .then((result) => {
           if (!result.error) {
             resolve(result);
@@ -15,12 +14,26 @@ module.exports = {
           }
         });
     }),
-  getJobseekerByEmail: (email) =>
+  createJobSeeker: (data) =>
     new Promise((resolve, reject) => {
       supabase
         .from("jobseeker")
+        .insert([data])
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
+  updateUser: (userId, data) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("recruiter")
+        .update(data)
+        .eq("id", userId)
         .select("*")
-        .eq("email", email)
         .then((result) => {
           if (!result.error) {
             resolve(result);
