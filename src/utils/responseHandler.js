@@ -1,9 +1,11 @@
-const responseHandler = (res, status, message, data, pagination) =>
-  res.status(status).json({
-    status,
-    message,
-    data,
-    pagination,
-  });
-
-module.exports = responseHandler;
+module.exports = {
+  response: (response, status, message, data, pagination) => {
+    const result = {
+      status,
+      message,
+      data, // data: data
+      pagination, // pagination : pagination
+    };
+    return response.status(status).json(result);
+  },
+};
