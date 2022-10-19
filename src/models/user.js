@@ -42,4 +42,19 @@ module.exports = {
           }
         });
     }),
+  updateJobseeker: (userId, data) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("jobseeker")
+        .update(data)
+        .eq("id", userId)
+        .select("*")
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
 };
