@@ -121,6 +121,7 @@ module.exports = {
 
       const setData = {
         activatedAt: today,
+        statusUser: "active",
       };
       const result = await userModel.updateUser(checkOTP, setData);
 
@@ -252,7 +253,7 @@ module.exports = {
       if (!validate) {
         return wrapper.response(res, 401, "Wrong Password!", null);
       }
-
+      console.log(checkEmail);
       if (checkEmail.data[0].statusUser !== "active") {
         return wrapper.response(res, 401, "Verify your email first", null);
       }
