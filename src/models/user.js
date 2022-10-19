@@ -7,6 +7,7 @@ module.exports = {
         .from("recruiter")
         .insert([data])
         .then((result) => {
+          console.log(result);
           if (!result.error) {
             resolve(result);
           } else {
