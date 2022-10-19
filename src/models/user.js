@@ -14,6 +14,19 @@ module.exports = {
           }
         });
     }),
+  createJobSeeker: (data) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("jobseeker")
+        .insert([data])
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
   updateUser: (userId, data) =>
     new Promise((resolve, reject) => {
       supabase
