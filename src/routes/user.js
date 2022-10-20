@@ -9,4 +9,5 @@ Router.get("/", userController.getAllJobSeekers);
 
 // get user/jobseeker by id
 Router.get("/:id", userController.getJobSeekerById);
+Router.get("/recruiter/:id", userController.getRecruiterById);
 module.exports = Router;

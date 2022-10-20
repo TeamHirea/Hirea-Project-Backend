@@ -88,4 +88,19 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
+  getRecruiterById : async(req, res)=>{
+    try {
+      const { id } = req.params;
+      const user = await userModel.getRecruiterById(id);
+      return wrapper.response(
+        res,
+        user.status,
+        "success get data recruiter by id",
+        user.data
+      );
+    } catch (error) {
+      const { status, statusText, error: errorData } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
 };

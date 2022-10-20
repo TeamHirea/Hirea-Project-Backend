@@ -6,7 +6,7 @@ const User = require("../models/user");
 module.exports = {
   isActive: async (req, res, next) => {
     try {
-      const findUserActive = await User.getDataById(req.user.userId);
+      const findUserActive = await userModel.getDataById(req.user.userId);
       if (findUserActive.data[0].statusUser === "active") {
         next();
       } else {
