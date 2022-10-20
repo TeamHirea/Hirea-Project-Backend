@@ -382,4 +382,58 @@ module.exports = {
       return wrapper.response(res, status, statusText, errorData);
     }
   },
+  forgotPassword: async (req, res) => {
+    try {
+      const { email } = req.body;
+      const findEmailRecruiter = await authModel.getRecruiterByEmail(email);
+      const findEmailJobseeker = await authModel.getJobseekerByEmail(email);
+      const findEmail = findEmailRecruiter ? findEmailRecruiter : findEmailJobseeker;
+
+      if (!findEmail) {
+        return wrapper.response(res, 401, "you must registered first", null);
+      }
+
+      if (findEmail.data.length === 0) {
+        return wrapper.response(res, 401, "email not exist", null);
+      }
+
+      const generateOtp = Math.floor(100000 + Math.random() * 900000);
+
+     const setMailOptions = {
+        email,
+        title: "Hirea Apps",
+        greeting: "Hello",
+        name : findEmail.data[0].name,
+        subject: "Forgot Password !",
+        subtitle: "Forgot Password",
+        message: "Please confirm your OTP by clicking the link",
+        otp : generateOtp,
+        template: "template-1.html",
+        button: `http://localhost:8080/api/auth/forgotPassword/${generateOtp}`,
+      };
+
+      await sendEmail(setMailOptions);
+
+      await client.client.setEx(
+        `forgotPasswordRecruiterOTP:${generateOtp}`,
+        3600,
+        JSON.stringify({ userId: findEmail.data[0].id })
+      );
+
+      return wrapper.response(
+        res,
+        200,
+        "Process success please check your email",
+        [{ email: findEmail.data[0].email }]
+      );
+    } catch (error) {
+      console.log(error);
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
 };
