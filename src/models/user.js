@@ -42,7 +42,8 @@ module.exports = {
         });
     }),
   updateRecruiter: (userId, data) =>
-    new Promise((resolve, reject) => {
+  new Promise((resolve, reject) => {
+      console.log(userId, data)
       supabase
         .from("recruiter")
         .update(data)

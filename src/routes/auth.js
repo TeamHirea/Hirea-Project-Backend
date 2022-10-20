@@ -13,5 +13,7 @@ Router.post("/forgotPassword", authController.forgotPassword)
 Router.post("/resetPassword/:otp", authController.resetPassword)
 Router.get("/verify/:otp", authController.verifyRecruiter);
 Router.get("/verifyJobseeker/:otp", authController.verifyjobseeker);
+Router.post("/logout", authController.logout);
+Router.post("/refresh", authController.refreshToken);
 
 module.exports = Router;

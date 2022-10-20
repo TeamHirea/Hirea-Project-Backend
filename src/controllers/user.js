@@ -1,5 +1,6 @@
 const userModel = require("../models/user");
 const wrapper = require("../utils/responseHandler");
+const cloudinary = require("../config/cloudinary");
 
 module.exports = {
   getAllJobSeekers: async (request, response) => {
@@ -103,4 +104,34 @@ module.exports = {
       return wrapper.response(res, status, statusText, errorData);
     }
   },
+  updateUserRecruiter : async(req, res)=>{
+    try {
+      const {id} = req.params
+      const { name, location, about, instagram, linkedin,  company, companyField, phone } =
+        req.body;
+
+      const user = await userModel.getRecruiterById(id);
+ 
+      if(user.data.length === 0){
+        return wrapper.response(res, 404, "cannot find user", null)
+      }
+
+      const image = req.file?.filename || "";
+      const setData = {
+        name, location, location, about, instagram, linkedin,  company, companyField, phone, image
+      };
+      if (image) {
+        cloudinary.uploader.destroy(user?.data[0]?.image, (result) => {
+          console.log(result);
+        });
+      }
+      const recruiter = await userModel.updateRecruiter(id, setData);
+      console.log(recruiter)
+      return wrapper.response(res, recruiter.status, "success update profile recruiter", recruiter.data);
+    } catch (error) {
+      console.log(error);
+      const { status, statusText, error: errorData } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  }
 };
