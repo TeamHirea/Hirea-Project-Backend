@@ -1,5 +1,4 @@
 const random = require("simple-random-number-generator");
-
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
@@ -23,6 +22,7 @@ module.exports = {
         confirmPassword,
       } = request.body;
       const checkEmail = await authModel.getRecruiterByEmail(email);
+      const checkJobseeker = await authModel.getJobseekerByEmail(email);
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -58,6 +58,7 @@ module.exports = {
           null
         );
       }
+      // check email if recruiter already register as jobseeker
 
       // save data by model
       await userModel.createRecruiter(setData);
@@ -83,12 +84,15 @@ module.exports = {
         message: "Please confirm your OTP by clicking the link",
         otp,
         template: "template-1.html",
-        button: `http://localhost:8080/api/auth/verify/${otp}`,
+        url: `http://localhost:8080/api/auth/verifyRecruiter/${otp}`,
+        button: "Click Me",
       };
 
       await sendEmail(setMailOptions);
       // save OTP in redis
-      client.client.client.setEx(`otp:${otp}`, 3600, userId);
+
+      client.client.setEx(`otpRecruiter:${otp}`, 3600, userId);
+
 
       return wrapper.response(
         response,
@@ -97,7 +101,6 @@ module.exports = {
         { id: userId }
       );
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -109,7 +112,13 @@ module.exports = {
   verifyRecruiter: async (request, response) => {
     try {
       const { otp } = request.params;
+<<<<<<< HEAD
       const checkOTP = await client.client.get(`otp:${otp}`);
+=======
+
+      const checkOTP = await client.client.get(`otpRecruiter:${otp}`);
+
+>>>>>>> c2e2bd5bb675fba09435c73e5acddbcbc37d7aab
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
       });
@@ -122,7 +131,7 @@ module.exports = {
         activatedAt: today,
         statusUser: "active",
       };
-      console.log(checkOTP);
+
       const result = await userModel.updateRecruiter(checkOTP, setData);
 
       client.client.client.del(`otp:${otp}`);
@@ -133,7 +142,6 @@ module.exports = {
         { userId: checkOTP }
       );
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -158,10 +166,12 @@ module.exports = {
         activated_at: today,
         statusUser: "active",
       };
-      console.log(checkOTP);
+
       const result = await userModel.updateJobseeker(checkOTP, setData);
 
-      // client.client.client.del(`otp:${otp}`);
+
+      client.del(`otpJobseeker:${otp}`);
+
       return wrapper.response(
         response,
         result.status,
@@ -169,7 +179,6 @@ module.exports = {
         { userId: checkOTP }
       );
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -182,6 +191,8 @@ module.exports = {
     try {
       const { name, email, phone, password, confirmPassword } = request.body;
       const checkEmail = await authModel.getJobseekerByEmail(email);
+      const checkRecruiter = await authModel.getRecruiterByEmail(email);
+
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -215,13 +226,14 @@ module.exports = {
           null
         );
       }
+      // check email if jobseeker already register as recruiter
 
       // save data by model
       await userModel.createJobSeeker(setData);
 
       // get data user
       const getDataUser = await authModel.getJobseekerByEmail(email);
-      console.log(getDataUser);
+
       delete getDataUser.data[0].password;
 
       const userId = getDataUser.data[0].id;
@@ -241,8 +253,9 @@ module.exports = {
         subtitle: "Email Verification",
         message: "Please confirm your OTP by clicking the link",
         otp,
-        template: "template-1.html",
-        button: `http://localhost:8080/api/auth/verifyJobseeker/${otp}`,
+        template: "template-2.html",
+        url: `http://localhost:8080/api/auth/verifyJobSeeker/${otp}`,
+        button: "Click Me",
       };
 
       await sendEmail(setMailOptions);
@@ -257,7 +270,6 @@ module.exports = {
         { id: userId }
       );
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -287,7 +299,7 @@ module.exports = {
       if (!validate) {
         return wrapper.response(res, 401, "Wrong Password!", null);
       }
-      console.log(checkEmail);
+
       if (checkEmail.data[0].statusUser !== "active") {
         return wrapper.response(res, 401, "Verify your email first", null);
       }
@@ -315,7 +327,6 @@ module.exports = {
         refreshToken,
       });
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -345,7 +356,7 @@ module.exports = {
       if (!validate) {
         return wrapper.response(res, 401, "Wrong Password!", null);
       }
-      console.log(checkEmail);
+
       if (checkEmail.data[0].statusUser !== "active") {
         return wrapper.response(res, 401, "Verify your email first", null);
       }
@@ -373,7 +384,6 @@ module.exports = {
         refreshToken,
       });
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
