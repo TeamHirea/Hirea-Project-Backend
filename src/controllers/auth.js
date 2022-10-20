@@ -23,6 +23,7 @@ module.exports = {
         confirmPassword,
       } = request.body;
       const checkEmail = await authModel.getRecruiterByEmail(email);
+      const checkEmailJobseeker = await authModel.getJobseekerByEmail(email)
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -50,7 +51,7 @@ module.exports = {
       }
 
       // check email in database
-      if (checkEmail.data.length > 0) {
+      if (checkEmail.data.length > 0 && checkEmailJobseeker.data.length > 0) {
         return wrapper.response(
           response,
           400,
@@ -106,10 +107,9 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
-  verify: async (request, response) => {
+  verifyRecruiter: async (request, response) => {
     try {
       const { otp } = request.params;
-
       const checkOTP = await client.client.get(`otp:${otp}`);
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
@@ -121,11 +121,48 @@ module.exports = {
 
       const setData = {
         activatedAt: today,
+        statusUser: "active",
       };
-      const result = await userModel.updateUser(checkOTP, setData);
+      console.log(checkOTP);
+      const result = await userModel.updateRecruiter(checkOTP, setData);
 
       client.client.del(`otp:${otp}`);
-      console.log(typeof checkOTP);
+      return wrapper.response(
+        response,
+        result.status,
+        "Success Verified, Please Login",
+        { userId: checkOTP }
+      );
+    } catch (error) {
+      console.log(error);
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(response, status, statusText, errorData);
+    }
+  },
+  verifyjobseeker: async (request, response) => {
+    try {
+      const { otp } = request.params;
+      const checkOTP = await client.client.get(`otpJobseeker:${otp}`);
+      const today = new Date().toLocaleString("en-US", {
+        timeZone: "Asia/Jakarta",
+      });
+
+      if (!checkOTP) {
+        return wrapper.response(response, 403, "Wrong OTP", null);
+      }
+
+      const setData = {
+        activated_at: today,
+        statusUser: "active",
+      };
+      console.log(checkOTP);
+      const result = await userModel.updateJobseeker(checkOTP, setData);
+
+      // client.client.del(`otp:${otp}`);
       return wrapper.response(
         response,
         result.status,
@@ -146,6 +183,7 @@ module.exports = {
     try {
       const { name, email, phone, password, confirmPassword } = request.body;
       const checkEmail = await authModel.getJobseekerByEmail(email);
+      const checkEmailRecruiter = await authModel.getRecruiterByEmail(email)
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -171,7 +209,7 @@ module.exports = {
       }
 
       // check email in database
-      if (checkEmail.data.length > 0) {
+      if (checkEmail.data.length > 0 && checkEmailRecruiter.data.length > 0) {
         return wrapper.response(
           response,
           400,
@@ -189,30 +227,30 @@ module.exports = {
       delete getDataUser.data[0].password;
 
       const userId = getDataUser.data[0].id;
-      // const otp = random({
-      //   min: 100000,
-      //   max: 999999,
-      //   integer: true,
-      // });
+      const otp = random({
+        min: 100000,
+        max: 999999,
+        integer: true,
+      });
 
-      // mailing
-      // const setMailOptions = {
-      //   email,
-      //   title: "Hirea Apps",
-      //   greeting: "Hello",
-      //   name,
-      //   subject: "Email Verification !",
-      //   subtitle: "Email Verification",
-      //   message: "Please confirm your OTP by clicking the link",
-      //   otp,
-      //   template: "template-1.html",
-      //   button: `http://localhost:8080/api/auth/verify/${otp}`,
-      // };
+      // mailing;
+      const setMailOptions = {
+        email,
+        title: "Hirea Apps",
+        greeting: "Hello",
+        name,
+        subject: "Email Verification !",
+        subtitle: "Email Verification",
+        message: "Please confirm your OTP by clicking the link",
+        otp,
+        template: "template-1.html",
+        button: `http://localhost:8080/api/auth/verifyJobseeker/${otp}`,
+      };
 
-      // await sendEmail(setMailOptions);
+      await sendEmail(setMailOptions);
 
       // save OTP in redis
-      // client.setEx(`otp:${otp}`, 3600, userId);
+      client.client.setEx(`otpJobseeker:${otp}`, 3600, userId);
 
       return wrapper.response(
         response,
@@ -230,8 +268,65 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
+  signinJobseeker: async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!validator.isEmail(email)) {
+        return wrapper.response(res, 401, "invalid email format", null);
+      }
+      // 1. PROSES PENGECEKAN EMAIL
+      const checkEmail = await authModel.getJobseekerByEmail(email);
+      if (checkEmail.data.length < 1) {
+        return wrapper.response(res, 404, "Wrong email input", null);
+      }
 
-  signinRecretuier: async (req, res) => {
+      const validate = await bcrypt.compare(
+        password,
+        checkEmail.data[0].password
+      );
+
+      // 2. PROSES PENCOCOKAN PASSWORD
+      if (!validate) {
+        return wrapper.response(res, 401, "Wrong Password!", null);
+      }
+      console.log(checkEmail);
+      if (checkEmail.data[0].statusUser !== "active") {
+        return wrapper.response(res, 401, "Verify your email first", null);
+      }
+
+      const payload = {
+        userId: checkEmail.data[0].userId,
+      };
+
+      const token = jwt.sign(payload, process.env.JWT_PRIVATE_ACCESS_KEY, {
+        expiresIn: "1d",
+      });
+
+      // membuat refresh token
+      const refreshToken = jwt.sign(
+        payload,
+        process.env.JWT_PRIVATE_REFRESH_KEY,
+        {
+          expiresIn: "36h",
+        }
+      );
+      // 4. PROSES REPON KE USER
+      return wrapper.response(res, 200, "Success Login", {
+        userId: payload.userId,
+        token,
+        refreshToken,
+      });
+    } catch (error) {
+      console.log(error);
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
+  signinRecruiter: async (req, res) => {
     try {
       const { email, password } = req.body;
       if (!validator.isEmail(email)) {
@@ -252,7 +347,7 @@ module.exports = {
       if (!validate) {
         return wrapper.response(res, 401, "Wrong Password!", null);
       }
-
+      console.log(checkEmail);
       if (checkEmail.data[0].statusUser !== "active") {
         return wrapper.response(res, 401, "Verify your email first", null);
       }
