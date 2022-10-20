@@ -161,7 +161,7 @@ module.exports = {
 
       const result = await userModel.updateJobseeker(checkOTP, setData);
 
-      client.client.del(`otpJobseeker:${otp}`);
+      client.del(`otpJobseeker:${otp}`);
       return wrapper.response(
         response,
         result.status,
