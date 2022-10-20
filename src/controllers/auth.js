@@ -88,7 +88,7 @@ module.exports = {
 
       await sendEmail(setMailOptions);
       // save OTP in redis
-      client.client.setEx(`otp:${otp}`, 3600, userId);
+      client.client.client.setEx(`otp:${otp}`, 3600, userId);
 
       return wrapper.response(
         response,
@@ -109,7 +109,7 @@ module.exports = {
   verifyRecruiter: async (request, response) => {
     try {
       const { otp } = request.params;
-      const checkOTP = await client.client.get(`otp:${otp}`);
+      const checkOTP = await client.client.client.get(`otp:${otp}`);
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
       });
@@ -125,7 +125,7 @@ module.exports = {
       console.log(checkOTP);
       const result = await userModel.updateRecruiter(checkOTP, setData);
 
-      client.client.del(`otp:${otp}`);
+      client.client.client.del(`otp:${otp}`);
       return wrapper.response(
         response,
         result.status,
@@ -145,7 +145,7 @@ module.exports = {
   verifyjobseeker: async (request, response) => {
     try {
       const { otp } = request.params;
-      const checkOTP = await client.client.get(`otpJobseeker:${otp}`);
+      const checkOTP = await client.client.client.get(`otpJobseeker:${otp}`);
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
       });
@@ -161,7 +161,7 @@ module.exports = {
       console.log(checkOTP);
       const result = await userModel.updateJobseeker(checkOTP, setData);
 
-      // client.client.del(`otp:${otp}`);
+      // client.client.client.del(`otp:${otp}`);
       return wrapper.response(
         response,
         result.status,
@@ -248,7 +248,7 @@ module.exports = {
       await sendEmail(setMailOptions);
 
       // save OTP in redis
-      client.client.setEx(`otpJobseeker:${otp}`, 3600, userId);
+      client.client.client.setEx(`otpJobseeker:${otp}`, 3600, userId);
 
       return wrapper.response(
         response,
@@ -421,7 +421,7 @@ module.exports = {
 
         await sendEmail(setMailOptions);
   
-        await client.setEx(
+        await client.client.setEx(
           `forgotPasswordJobSeekerOTP:${generateOtp}`,
           3600,
           JSON.stringify({ userId: findEmail.data[0].id })
@@ -460,7 +460,7 @@ module.exports = {
 
       await sendEmail(setMailOptions);
 
-      await client.setEx(
+      await client.client.setEx(
       `forgotPasswordOTP:${generateOtp}`,
       3600,
       JSON.stringify({ userId: findEmail.data[0].id })
@@ -489,7 +489,7 @@ module.exports = {
       const { otp } = req.params;
       const { newPassword, confirmPassword } = req.body;
       let resetPasswordOtp;
-      resetPasswordOtp = await client.get(`forgotPasswordJobSeekerOTP:${otp}`) ? await client.get(`forgotPasswordJobSeekerOTP:${otp}`) : await client.get(`forgotPasswordOTP:${otp}`)
+      resetPasswordOtp = await client.client.get(`forgotPasswordJobSeekerOTP:${otp}`) ? await client.client.get(`forgotPasswordJobSeekerOTP:${otp}`) : await client.client.get(`forgotPasswordOTP:${otp}`)
       console.log(resetPasswordOtp)
       const userReset = JSON.parse(resetPasswordOtp);
       
@@ -520,12 +520,12 @@ module.exports = {
  
 
       let user;
-      if(await client.get(`forgotPasswordOTP:${otp}`)){
+      if(await client.client.get(`forgotPasswordOTP:${otp}`)){
         user = await userModel.updateRecruiter(userReset.userId, setData)
-        await client.del(`forgotPasswordOTP:${otp}`);
+        await client.client.del(`forgotPasswordOTP:${otp}`);
       } else {
         user = await userModel.updateJobseeker(userReset.userId, setData)
-        await client.del(`forgotPasswordJobSeekerOTP:${otp}`);
+        await client.client.del(`forgotPasswordJobSeekerOTP:${otp}`);
       }
 
       return wrapper.response(res, 200, "success reset password ", {
