@@ -109,7 +109,7 @@ module.exports = {
   verifyRecruiter: async (request, response) => {
     try {
       const { otp } = request.params;
-      const checkOTP = await client.client.client.get(`otp:${otp}`);
+      const checkOTP = await client.client.get(`otp:${otp}`);
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
       });
@@ -145,7 +145,7 @@ module.exports = {
   verifyjobseeker: async (request, response) => {
     try {
       const { otp } = request.params;
-      const checkOTP = await client.client.client.get(`otpJobseeker:${otp}`);
+      const checkOTP = await client.client.get(`otpJobseeker:${otp}`);
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
       });
@@ -416,7 +416,7 @@ module.exports = {
           message: "Please confirm your OTP by clicking the link",
           otp : generateOtp,
           template: "template-1.html",
-          button: `http://localhost:8080/api/auth/forgotPassword/${generateOtp}`,
+          button: `http://localhost:8080/api/auth/resetPassword/${generateOtp}`,
         };
 
         await sendEmail(setMailOptions);
@@ -455,7 +455,7 @@ module.exports = {
         message: "Please confirm your OTP by clicking the link",
         otp : generateOtp,
         template: "template-1.html",
-        button: `http://localhost:8080/api/auth/forgotPassword/${generateOtp}`,
+        button: `http://localhost:8080/api/auth/resetPassword/${generateOtp}`,
       };
 
       await sendEmail(setMailOptions);
@@ -531,6 +531,110 @@ module.exports = {
       return wrapper.response(res, 200, "success reset password ", {
         userId: user.data[0].id,
       });
+    } catch (error) {
+      console.log(error);
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
+
+  logout: async (req, res) => {
+    try {
+      let token = req.headers.authorization;
+      // eslint-disable-next-line prefer-destructuring
+      const { refreshtoken } = req.headers;
+      token = token.split(" ")[1];
+      client.setEx(`accessToken:${token}`, 3600, token);
+      client.setEx(`refreshToken:${refreshtoken}`, 3600, refreshtoken);
+      return wrapper.response(res, 200, "success log out", null);
+    } catch (error) {
+      console.log(error);
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
+  refreshToken: async (req, res) => {
+    try {
+      const { refreshtoken } = req.headers;
+      // pengecekkan
+      if (!refreshtoken) {
+        return wrapper.response(res, 400, "refresh token must be filled", null);
+      }
+
+      let payload;
+      let token;
+      let newRefreshToken;
+
+      if (!refreshtoken) {
+        return wrapper.response(res, 400, "refresh token must be filled", null);
+      }
+
+      const checkTokenBlackList = await client.client.get(
+        `refreshToken:${refreshtoken}`
+      );
+
+      if (checkTokenBlackList) {
+        return wrapper.response(
+          res,
+          403,
+          "Your token has been destryoed",
+          null
+        );
+      }
+
+      // ketika mau generate access tokennya lagi, maka ini harus di hapus terlebih dahulu
+      jwt.verify(refreshtoken, process.env.JWT_PRIVATE_REFRESH_KEY, (error, result) => {
+        if (error) {
+          return wrapper.response(res, 403, error.message, null);
+        }
+
+        payload = {
+          userId: result.userId,
+          role: result.role,
+        };
+        token = jwt.sign(payload, process.env.JWT_PRIVATE_ACCESS_KEY, {
+          expiresIn: "24h",
+        });
+
+        newRefreshToken = jwt.sign(payload, process.env.JWT_PRIVATE_REFRESH_KEY, {
+          expiresIn: "36h",
+        });
+
+        client.client.setEx(`refreshToken:${refreshtoken}`, 3600 * 36, refreshtoken);
+      });
+
+      return wrapper.response(res, 200, "success refresh token", {
+        userId: payload.userId,
+        token,
+        refreshToken: newRefreshToken,
+      });
+    } catch (error) {
+      console.log(error)
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
+  logout: async (req, res) => {
+    try {
+      let token = req.headers.authorization;
+      // eslint-disable-next-line prefer-destructuring
+      const { refreshtoken } = req.headers;
+      token = token.split(" ")[1];
+      client.setEx(`accessToken:${token}`, 3600, token);
+      client.setEx(`refreshToken:${refreshtoken}`, 3600, refreshtoken);
+      return wrapper.response(res, 200, "success log out", null);
     } catch (error) {
       console.log(error);
       const {
