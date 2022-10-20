@@ -3,7 +3,7 @@ const express = require("express");
 const Router = express.Router();
 const authRouter = require("./auth");
 
-const portfolioRouter = require("./portfolio");
+// const portfolioRouter = require("./portfolio");
 
 const userRouter = require("./user");
 const experienceRouter = require("./experience");
@@ -14,7 +14,7 @@ Router.get("/ping", (request, response) => {
 });
 
 Router.use("/auth", authRouter);
-Router.use("/portfolio", portfolioRouter);
+// Router.use("/portfolio", portfolioRouter);
 
 // user's endpoint
 Router.use("/user", userRouter);
