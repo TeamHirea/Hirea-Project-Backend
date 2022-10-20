@@ -23,7 +23,7 @@ const corsOptions = {
   // ],
 };
 
-redisConn();
+// redisConn();
 app.use(cors(corsOptions));
 app.use(morgan("dev"));
 app.use(helmet()); // Mengamankan Header

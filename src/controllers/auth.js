@@ -384,22 +384,68 @@ module.exports = {
   },
   forgotPassword: async (req, res) => {
     try {
-      const { email } = req.body;
-      const findEmailRecruiter = await authModel.getRecruiterByEmail(email);
-      const findEmailJobseeker = await authModel.getJobseekerByEmail(email);
-      const findEmail = findEmailRecruiter ? findEmailRecruiter : findEmailJobseeker;
+    const { email } = req.body;
+    const findEmailRecruiter = await authModel.getRecruiterByEmail(email);
+    const findEmailJobseeker = await authModel.getJobseekerByEmail(email);
+    const generateOtp = Math.floor(100000 + Math.random() * 900000);
+    if(findEmailJobseeker.data.length === 0 && findEmailRecruiter.data.length === 0){
+      return wrapper.response(
+        res,
+        200,
+        "email not existed. please register first",
+        null
+      );
+    }
+      if(findEmailRecruiter.data.length === 0){
+        findEmail = findEmailJobseeker;
+        if(!findEmail.data.length){
+          return wrapper.response(
+            res,
+            200,
+            "email not exist",
+            null
+          );
+        }
+        const setMailOptions = {
+          email,
+          title: "Hirea Apps",
+          greeting: "Hello",
+          name : findEmail.data[0].name,
+          subject: "Forgot Password !",
+          subtitle: "Forgot Password",
+          message: "Please confirm your OTP by clicking the link",
+          otp : generateOtp,
+          template: "template-1.html",
+          button: `http://localhost:8080/api/auth/forgotPassword/${generateOtp}`,
+        };
 
-      if (!findEmail) {
-        return wrapper.response(res, 401, "you must registered first", null);
+        await sendEmail(setMailOptions);
+  
+        await client.setEx(
+          `forgotPasswordJobSeekerOTP:${generateOtp}`,
+          3600,
+          JSON.stringify({ userId: findEmail.data[0].id })
+          );
+          
+       
+        return wrapper.response(
+          res,
+          200,
+          "Process success please check your email",
+          [{ email: findEmail.data[0].email }]
+        );
       }
 
-      if (findEmail.data.length === 0) {
-        return wrapper.response(res, 401, "email not exist", null);
+      findEmail = findEmailRecruiter;
+      if(!findEmail.data.length){
+        return wrapper.response(
+          res,
+          200,
+          "email not exist",
+          null
+        );
       }
-
-      const generateOtp = Math.floor(100000 + Math.random() * 900000);
-
-     const setMailOptions = {
+      const setMailOptions = {
         email,
         title: "Hirea Apps",
         greeting: "Hello",
@@ -414,10 +460,10 @@ module.exports = {
 
       await sendEmail(setMailOptions);
 
-      await client.client.setEx(
-        `forgotPasswordRecruiterOTP:${generateOtp}`,
-        3600,
-        JSON.stringify({ userId: findEmail.data[0].id })
+      await client.setEx(
+      `forgotPasswordOTP:${generateOtp}`,
+      3600,
+      JSON.stringify({ userId: findEmail.data[0].id })
       );
 
       return wrapper.response(
@@ -426,6 +472,65 @@ module.exports = {
         "Process success please check your email",
         [{ email: findEmail.data[0].email }]
       );
+      
+    } catch (error) {
+      console.log(error);
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
+
+  resetPassword: async (req, res) => {
+    try {
+      const { otp } = req.params;
+      const { newPassword, confirmPassword } = req.body;
+      let resetPasswordOtp;
+      resetPasswordOtp = await client.get(`forgotPasswordJobSeekerOTP:${otp}`) ? await client.get(`forgotPasswordJobSeekerOTP:${otp}`) : await client.get(`forgotPasswordOTP:${otp}`)
+      console.log(resetPasswordOtp)
+      const userReset = JSON.parse(resetPasswordOtp);
+      
+      if (!resetPasswordOtp) {
+        return wrapper.response(
+          res,
+          404,
+          "otp can't be used, please do forgot password process first!",
+          null
+        );
+      }
+
+      if (newPassword !== confirmPassword) {
+        return wrapper.response(
+          res,
+          401,
+          "your new password and confirm password, did not match",
+          null
+        );
+      }
+      const salt = await bcrypt.genSalt(10);
+      const encrypted = await bcrypt.hash(newPassword, salt);
+
+      const setData = {
+        password: encrypted,
+      };
+
+ 
+
+      let user;
+      if(await client.get(`forgotPasswordOTP:${otp}`)){
+        user = await userModel.updateRecruiter(userReset.userId, setData)
+        await client.del(`forgotPasswordOTP:${otp}`);
+      } else {
+        user = await userModel.updateJobseeker(userReset.userId, setData)
+        await client.del(`forgotPasswordJobSeekerOTP:${otp}`);
+      }
+
+      return wrapper.response(res, 200, "success reset password ", {
+        userId: user.data[0].id,
+      });
     } catch (error) {
       console.log(error);
       const {
