@@ -23,7 +23,6 @@ module.exports = {
         confirmPassword,
       } = request.body;
       const checkEmail = await authModel.getRecruiterByEmail(email);
-      const checkEmailJobseeker = await authModel.getJobseekerByEmail(email)
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -51,7 +50,7 @@ module.exports = {
       }
 
       // check email in database
-      if (checkEmail.data.length > 0 && checkEmailJobseeker.data.length > 0) {
+      if (checkEmail.data.length > 0) {
         return wrapper.response(
           response,
           400,
@@ -183,7 +182,6 @@ module.exports = {
     try {
       const { name, email, phone, password, confirmPassword } = request.body;
       const checkEmail = await authModel.getJobseekerByEmail(email);
-      const checkEmailRecruiter = await authModel.getRecruiterByEmail(email)
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -209,7 +207,7 @@ module.exports = {
       }
 
       // check email in database
-      if (checkEmail.data.length > 0 && checkEmailRecruiter.data.length > 0) {
+      if (checkEmail.data.length > 0) {
         return wrapper.response(
           response,
           400,
