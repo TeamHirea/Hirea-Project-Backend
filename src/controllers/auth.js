@@ -106,7 +106,7 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
-  verify: async (request, response) => {
+  verifyRecruiter: async (request, response) => {
     try {
       const { otp } = request.params;
       const checkOTP = await client.client.get(`otp:${otp}`);
@@ -123,7 +123,7 @@ module.exports = {
         statusUser: "active",
       };
       console.log(checkOTP);
-      const result = await userModel.updateUser(checkOTP, setData);
+      const result = await userModel.updateRecruiter(checkOTP, setData);
 
       client.client.del(`otp:${otp}`);
       return wrapper.response(
@@ -266,7 +266,6 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
-
   signinJobseeker: async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -325,8 +324,7 @@ module.exports = {
       return wrapper.response(res, status, statusText, errorData);
     }
   },
-
-  signinRecretuier: async (req, res) => {
+  signinRecruiter: async (req, res) => {
     try {
       const { email, password } = req.body;
       if (!validator.isEmail(email)) {

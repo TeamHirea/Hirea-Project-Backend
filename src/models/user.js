@@ -27,7 +27,7 @@ module.exports = {
           }
         });
     }),
-  updateUser: (userId, data) =>
+  updateRecruiter: (userId, data) =>
     new Promise((resolve, reject) => {
       supabase
         .from("recruiter")
