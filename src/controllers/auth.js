@@ -23,6 +23,7 @@ module.exports = {
         confirmPassword,
       } = request.body;
       const checkEmail = await authModel.getRecruiterByEmail(email);
+      // const checkJobseeker = await authModel.getJobseekerByEmail(email);
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -88,7 +89,8 @@ module.exports = {
 
       await sendEmail(setMailOptions);
       // save OTP in redis
-      client.client.client.setEx(`otp:${otp}`, 3600, userId);
+
+      client.setEx(`otpRecruiter:${otp}`, 3600, userId);
 
       return wrapper.response(
         response,
@@ -109,7 +111,9 @@ module.exports = {
   verifyRecruiter: async (request, response) => {
     try {
       const { otp } = request.params;
-      const checkOTP = await client.client.get(`otp:${otp}`);
+
+      const checkOTP = await client.get(`otpRecruiter:${otp}`);
+
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
       });
@@ -125,7 +129,7 @@ module.exports = {
       console.log(checkOTP);
       const result = await userModel.updateRecruiter(checkOTP, setData);
 
-      client.client.client.del(`otp:${otp}`);
+      client.del(`otp:${otp}`);
       return wrapper.response(
         response,
         result.status,
@@ -161,7 +165,8 @@ module.exports = {
       console.log(checkOTP);
       const result = await userModel.updateJobseeker(checkOTP, setData);
 
-      // client.client.client.del(`otp:${otp}`);
+      client.del(`otpJobseeker:${otp}`);
+
       return wrapper.response(
         response,
         result.status,
@@ -182,6 +187,8 @@ module.exports = {
     try {
       const { name, email, phone, password, confirmPassword } = request.body;
       const checkEmail = await authModel.getJobseekerByEmail(email);
+      // const checkRecruiter = await authModel.getRecruiterByEmail(email);
+
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -384,50 +391,47 @@ module.exports = {
   },
   forgotPassword: async (req, res) => {
     try {
-    const { email } = req.body;
-    const findEmailRecruiter = await authModel.getRecruiterByEmail(email);
-    const findEmailJobseeker = await authModel.getJobseekerByEmail(email);
-    const generateOtp = Math.floor(100000 + Math.random() * 900000);
-    if(findEmailJobseeker.data.length === 0 && findEmailRecruiter.data.length === 0){
-      return wrapper.response(
-        res,
-        200,
-        "email not existed. please register first",
-        null
-      );
-    }
-      if(findEmailRecruiter.data.length === 0){
+      const { email } = req.body;
+      const findEmailRecruiter = await authModel.getRecruiterByEmail(email);
+      const findEmailJobseeker = await authModel.getJobseekerByEmail(email);
+      const generateOtp = Math.floor(100000 + Math.random() * 900000);
+      if (
+        findEmailJobseeker.data.length === 0 &&
+        findEmailRecruiter.data.length === 0
+      ) {
+        return wrapper.response(
+          res,
+          200,
+          "email not existed. please register first",
+          null
+        );
+      }
+      if (findEmailRecruiter.data.length === 0) {
         findEmail = findEmailJobseeker;
-        if(!findEmail.data.length){
-          return wrapper.response(
-            res,
-            200,
-            "email not exist",
-            null
-          );
+        if (!findEmail.data.length) {
+          return wrapper.response(res, 200, "email not exist", null);
         }
         const setMailOptions = {
           email,
           title: "Hirea Apps",
           greeting: "Hello",
-          name : findEmail.data[0].name,
+          name: findEmail.data[0].name,
           subject: "Forgot Password !",
           subtitle: "Forgot Password",
           message: "Please confirm your OTP by clicking the link",
-          otp : generateOtp,
+          otp: generateOtp,
           template: "template-1.html",
           button: `http://localhost:8080/api/auth/resetPassword/${generateOtp}`,
         };
 
         await sendEmail(setMailOptions);
-  
+
         await client.client.setEx(
           `forgotPasswordJobSeekerOTP:${generateOtp}`,
           3600,
           JSON.stringify({ userId: findEmail.data[0].id })
-          );
-          
-       
+        );
+
         return wrapper.response(
           res,
           200,
@@ -437,23 +441,18 @@ module.exports = {
       }
 
       findEmail = findEmailRecruiter;
-      if(!findEmail.data.length){
-        return wrapper.response(
-          res,
-          200,
-          "email not exist",
-          null
-        );
+      if (!findEmail.data.length) {
+        return wrapper.response(res, 200, "email not exist", null);
       }
       const setMailOptions = {
         email,
         title: "Hirea Apps",
         greeting: "Hello",
-        name : findEmail.data[0].name,
+        name: findEmail.data[0].name,
         subject: "Forgot Password !",
         subtitle: "Forgot Password",
         message: "Please confirm your OTP by clicking the link",
-        otp : generateOtp,
+        otp: generateOtp,
         template: "template-1.html",
         button: `http://localhost:8080/api/auth/resetPassword/${generateOtp}`,
       };
@@ -461,9 +460,9 @@ module.exports = {
       await sendEmail(setMailOptions);
 
       await client.client.setEx(
-      `forgotPasswordOTP:${generateOtp}`,
-      3600,
-      JSON.stringify({ userId: findEmail.data[0].id })
+        `forgotPasswordOTP:${generateOtp}`,
+        3600,
+        JSON.stringify({ userId: findEmail.data[0].id })
       );
 
       return wrapper.response(
@@ -472,7 +471,6 @@ module.exports = {
         "Process success please check your email",
         [{ email: findEmail.data[0].email }]
       );
-      
     } catch (error) {
       console.log(error);
       const {
@@ -489,10 +487,14 @@ module.exports = {
       const { otp } = req.params;
       const { newPassword, confirmPassword } = req.body;
       let resetPasswordOtp;
-      resetPasswordOtp = await client.client.get(`forgotPasswordJobSeekerOTP:${otp}`) ? await client.client.get(`forgotPasswordJobSeekerOTP:${otp}`) : await client.client.get(`forgotPasswordOTP:${otp}`)
-      console.log(resetPasswordOtp)
+      resetPasswordOtp = (await client.client.get(
+        `forgotPasswordJobSeekerOTP:${otp}`
+      ))
+        ? await client.client.get(`forgotPasswordJobSeekerOTP:${otp}`)
+        : await client.client.get(`forgotPasswordOTP:${otp}`);
+      console.log(resetPasswordOtp);
       const userReset = JSON.parse(resetPasswordOtp);
-      
+
       if (!resetPasswordOtp) {
         return wrapper.response(
           res,
@@ -517,14 +519,12 @@ module.exports = {
         password: encrypted,
       };
 
- 
-
       let user;
-      if(await client.client.get(`forgotPasswordOTP:${otp}`)){
-        user = await userModel.updateRecruiter(userReset.userId, setData)
+      if (await client.client.get(`forgotPasswordOTP:${otp}`)) {
+        user = await userModel.updateRecruiter(userReset.userId, setData);
         await client.client.del(`forgotPasswordOTP:${otp}`);
       } else {
-        user = await userModel.updateJobseeker(userReset.userId, setData)
+        user = await userModel.updateJobseeker(userReset.userId, setData);
         await client.client.del(`forgotPasswordJobSeekerOTP:${otp}`);
       }
 
@@ -591,25 +591,37 @@ module.exports = {
       }
 
       // ketika mau generate access tokennya lagi, maka ini harus di hapus terlebih dahulu
-      jwt.verify(refreshtoken,process.env.JWT_PRIVATE_REFRESH_KEY, (error, result) => {
-        if (error) {
-          return wrapper.response(res, 403, error.message, null);
+      jwt.verify(
+        refreshtoken,
+        process.env.JWT_PRIVATE_REFRESH_KEY,
+        (error, result) => {
+          if (error) {
+            return wrapper.response(res, 403, error.message, null);
+          }
+
+          payload = {
+            userId: result.userId,
+            role: result.role,
+          };
+          token = jwt.sign(payload, process.env.JWT_PRIVATE_ACCESS_KEY, {
+            expiresIn: "24h",
+          });
+
+          newRefreshToken = jwt.sign(
+            payload,
+            process.env.JWT_PRIVATE_REFRESH_KEY,
+            {
+              expiresIn: "36h",
+            }
+          );
+
+          client.client.setEx(
+            `refreshToken:${refreshtoken}`,
+            3600 * 36,
+            refreshtoken
+          );
         }
-
-        payload = {
-          userId: result.userId,
-          role: result.role,
-        };
-        token = jwt.sign(payload, process.env.JWT_PRIVATE_ACCESS_KEY, {
-          expiresIn: "24h",
-        });
-
-        newRefreshToken = jwt.sign(payload, process.env.JWT_PRIVATE_REFRESH_KEY, {
-          expiresIn: "36h",
-        });
-
-        client.client.setEx(`refreshToken:${refreshtoken}`, 3600 * 36, refreshtoken);
-      });
+      );
 
       return wrapper.response(res, 200, "success refresh token", {
         userId: payload.userId,
@@ -617,7 +629,7 @@ module.exports = {
         refreshToken: newRefreshToken,
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -631,7 +643,7 @@ module.exports = {
       let token = req.headers.authorization;
       // eslint-disable-next-line prefer-destructuring
       const { refreshtoken } = req.headers;
-      console.log(token)
+      console.log(token);
       token = token.split(" ")[1];
       client.client.setEx(`accessToken:${token}`, 3600, token);
       client.client.setEx(`refreshToken:${refreshtoken}`, 3600, refreshtoken);
