@@ -14,7 +14,7 @@ module.exports = {
           }
         });
     }),
-    getRecruiterById: (id) =>
+  getRecruiterById: (id) =>
     new Promise((resolve, reject) => {
       supabase
         .from("recruiter")
@@ -42,8 +42,7 @@ module.exports = {
         });
     }),
   updateRecruiter: (userId, data) =>
-  new Promise((resolve, reject) => {
-      console.log(userId, data)
+    new Promise((resolve, reject) => {
       supabase
         .from("recruiter")
         .update(data)

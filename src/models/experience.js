@@ -21,4 +21,18 @@ module.exports = {
           }
         });
     }),
+  deleteExperience: (id) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("experience")
+        .delete()
+        .eq("id", id)
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
 };

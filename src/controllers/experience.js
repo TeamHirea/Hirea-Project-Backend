@@ -46,4 +46,21 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
+  removeExperience: async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const event = await eventModel.deleteEvent(eventId);
+
+      if (event.data.length === 0) {
+        return wrapper.response(res, 404, "data tidak ditemukan", null);
+      }
+      cloudinary.uploader.destroy(event?.data[0]?.image, (result) => {
+        console.log(result);
+      });
+      return wrapper.response(res, event.status, "delete data", event.data);
+    } catch (error) {
+      const { status, statusText, error: errorData } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
 };

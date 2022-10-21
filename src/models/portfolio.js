@@ -57,4 +57,18 @@ module.exports = {
           }
         });
     }),
+  deletePortfolio: (id, data) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("portfolio")
+        .delete(data)
+        .eq("id", id)
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
 };
