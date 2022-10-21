@@ -8,6 +8,7 @@ const portfolioRouter = require("./portfolio");
 const userRouter = require("./user");
 const experienceRouter = require("./experience");
 const messageRouter = require("./message");
+const skillRouter = require("./skill");
 
 Router.get("/ping", (request, response) => {
   response.status(200).send("Hello World!");
@@ -24,4 +25,7 @@ Router.use("/experience", experienceRouter);
 
 // message's endpoint
 Router.use("/message", messageRouter);
+
+// skill's endpoint
+Router.use("/skill", skillRouter);
 module.exports = Router;
