@@ -100,7 +100,7 @@ module.exports = {
       await sendEmail(setMailOptions);
       // save OTP in redis
 
-      client.setEx(`otpRecruiter:${otp}`, 3600, userId);
+      client.client.setEx(`otpRecruiter:${otp}`, 3600, userId);
 
       return wrapper.response(
         response,
@@ -275,7 +275,7 @@ module.exports = {
       await sendEmail(setMailOptions);
 
       // save OTP in redis
-      client.client.client.setEx(`otpJobseeker:${otp}`, 3600, userId);
+      client.client.setEx(`otpJobseeker:${otp}`, 3600, userId);
 
       return wrapper.response(
         response,
@@ -415,6 +415,7 @@ module.exports = {
       const findEmailRecruiter = await authModel.getRecruiterByEmail(email);
       const findEmailJobseeker = await authModel.getJobseekerByEmail(email);
       const generateOtp = Math.floor(100000 + Math.random() * 900000);
+      let findEmail;
       if (
         findEmailJobseeker.data.length === 0 &&
         findEmailRecruiter.data.length === 0
@@ -568,8 +569,8 @@ module.exports = {
       // eslint-disable-next-line prefer-destructuring
       const { refreshtoken } = req.headers;
       token = token.split(" ")[1];
-      client.setEx(`accessToken:${token}`, 3600, token);
-      client.setEx(`refreshToken:${refreshtoken}`, 3600, refreshtoken);
+      client.client.setEx(`accessToken:${token}`, 3600, token);
+      client.client.setEx(`refreshToken:${refreshtoken}`, 3600, refreshtoken);
       return wrapper.response(res, 200, "success log out", null);
     } catch (error) {
       console.log(error);
@@ -648,26 +649,6 @@ module.exports = {
         token,
         refreshToken: newRefreshToken,
       });
-    } catch (error) {
-      console.log(error);
-      const {
-        status = 500,
-        statusText = "Internal Server Error",
-        error: errorData = null,
-      } = error;
-      return wrapper.response(res, status, statusText, errorData);
-    }
-  },
-  logout: async (req, res) => {
-    try {
-      let token = req.headers.authorization;
-      // eslint-disable-next-line prefer-destructuring
-      const { refreshtoken } = req.headers;
-      console.log(token);
-      token = token.split(" ")[1];
-      client.client.setEx(`accessToken:${token}`, 3600, token);
-      client.client.setEx(`refreshToken:${refreshtoken}`, 3600, refreshtoken);
-      return wrapper.response(res, 200, "success log out", null);
     } catch (error) {
       console.log(error);
       const {

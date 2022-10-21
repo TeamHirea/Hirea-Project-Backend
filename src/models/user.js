@@ -14,7 +14,7 @@ module.exports = {
           }
         });
     }),
-    getRecruiterById: (id) =>
+  getRecruiterById: (id) =>
     new Promise((resolve, reject) => {
       supabase
         .from("recruiter")
@@ -42,8 +42,7 @@ module.exports = {
         });
     }),
   updateRecruiter: (userId, data) =>
-  new Promise((resolve, reject) => {
-      console.log(userId, data)
+    new Promise((resolve, reject) => {
       supabase
         .from("recruiter")
         .update(data)
@@ -72,29 +71,24 @@ module.exports = {
           }
         });
     }),
+  // need some fixes
   getAllJobSeekers: (objParams) =>
     new Promise((resolve, reject) => {
-      let query = supabase
+      supabase
         .from("jobseeker")
         .select("*")
-        .ilike("skill", `%${objParams.countingParams.search}%`)
+        // .ilike("skill", `%${objParams.countingParams.search}%`)
         .order(objParams.column, { ascending: objParams.order }) // sorting the results based on column and order type entered
-        .range(objParams.offset, objParams.offset + objParams.limit - 1);
-
-      if (Object.hasOwn(objParams.countingParams, "previousDay")) {
-        query = query
-          .gt("dateTimeShow", objParams.countingParams.previousDay)
-          .lt("dateTimeShow", objParams.countingParams.nextDay);
-      }
-
-      query.then((result) => {
-        if (!result.error) {
-          resolve(result);
-        } else {
-          reject(result);
-        }
-      });
+        .range(objParams.offset, objParams.offset + objParams.limit - 1)
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
     }),
+  // still not working properly
   getCountJobSeekers: () =>
     new Promise((resolve, reject) => {
       supabase
