@@ -1,5 +1,7 @@
+/* eslint-disable camelcase */
 const userModel = require("../models/user");
 const wrapper = require("../utils/responseHandler");
+const cloudinary = require("../config/cloudinary");
 
 module.exports = {
   getAllJobSeekers: async (request, response) => {
@@ -21,7 +23,6 @@ module.exports = {
 
       const countingParams = { search };
       const totalData = await userModel.getCountJobSeekers(countingParams);
-      // console.log(totalData);
 
       const totalPage = Math.ceil(totalData / limit);
       const pagination = { page, limit, totalData, totalPage };
@@ -86,6 +87,115 @@ module.exports = {
       } = error;
 
       return wrapper.response(response, status, statusText, errorData);
+    }
+  },
+  getRecruiterById: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = await userModel.getRecruiterById(id);
+      return wrapper.response(
+        res,
+        user.status,
+        "success get data recruiter by id",
+        user.data
+      );
+    } catch (error) {
+      const { status, statusText, error: errorData } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
+  updateUserRecruiter: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        name,
+        location,
+        about,
+        instagram,
+        linkedin,
+        company,
+        companyField,
+        phone,
+      } = req.body;
+
+      const user = await userModel.getRecruiterById(id);
+
+      if (user.data.length === 0) {
+        return wrapper.response(res, 404, "cannot find user", null);
+      }
+
+      const image = req.file?.filename || "";
+      const setData = {
+        name,
+        location,
+        about,
+        instagram,
+        linkedin,
+        company,
+        companyField,
+        phone,
+        image,
+      };
+      if (image) {
+        cloudinary.uploader.destroy(user?.data[0]?.image, () => {});
+      }
+      const recruiter = await userModel.updateRecruiter(id, setData);
+      return wrapper.response(
+        res,
+        recruiter.status,
+        "success update profile recruiter",
+        recruiter.data
+      );
+    } catch (error) {
+      const { status, statusText, error: errorData } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
+  updateUserJobseeker: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        name,
+        job,
+        location,
+        instagram,
+        github,
+        gitlab,
+        description,
+        job_type,
+      } = req.body;
+
+      const user = await userModel.getJobSeekersById(id);
+
+      if (user.data.length === 0) {
+        return wrapper.response(res, 404, "cannot find user", null);
+      }
+
+      const image = req.file?.filename || "";
+      const setData = {
+        name,
+        job,
+        location,
+        instagram,
+        github,
+        gitlab,
+        description,
+        job_type,
+        image,
+      };
+      if (image) {
+        cloudinary.uploader.destroy(user?.data[0]?.image);
+      }
+      const jobseeker = await userModel.updateJobseeker(id, setData);
+      return wrapper.response(
+        res,
+        jobseeker.status,
+        "success update profile recruiter",
+        jobseeker.data
+      );
+    } catch (error) {
+      const { status, statusText, error: errorData } = error;
+      return wrapper.response(res, status, statusText, errorData);
     }
   },
 };
