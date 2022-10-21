@@ -14,11 +14,10 @@ module.exports = {
 
     const fileFilter = (request, file, cb) => {
       if (file.mimetype.startsWith("image")) {
-        cb(null, true);
-      } else {
-        cb(null, false);
-        return cb(new Error("Only .png .jpg and .jpeg format allowed!"));
+        return cb(null, true);
       }
+      cb(null, false);
+      return cb(new Error("Only .png .jpg and .jpeg format allowed!"));
     };
 
     const upload = multer({
