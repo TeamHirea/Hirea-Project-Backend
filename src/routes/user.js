@@ -26,4 +26,10 @@ Router.patch(
   uploadFile.uploadJobseeker,
   userController.updateUserJobseeker
 );
+
+Router.patch(
+  "/jobseeker/updatePassword/:userId",
+  userController.updatePasswordJobSeeker
+);
+
 module.exports = Router;

@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+const bcrypt = require("bcrypt");
 const userModel = require("../models/user");
 const wrapper = require("../utils/responseHandler");
 const cloudinary = require("../config/cloudinary");
@@ -194,6 +195,48 @@ module.exports = {
         jobseeker.data
       );
     } catch (error) {
+      const { status, statusText, error: errorData } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
+  updatePasswordJobSeeker: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      console.log(userId);
+      const { confirmPassword, oldPassword, newPassword } = req.body;
+      if (!confirmPassword || !oldPassword || !newPassword) {
+        return wrapper.response(res, 401, "some field still empty", null);
+      }
+      const user = await userModel.getJobSeekersById(userId);
+      const salt = await bcrypt.genSalt(12);
+      const checkOldPassword = await bcrypt.compare(
+        oldPassword,
+        user.data[0].password
+      );
+      if (!checkOldPassword) {
+        return wrapper.response(res, 401, "Wrong Old Password Input", null);
+      }
+      if (newPassword !== confirmPassword) {
+        return wrapper.response(res, 401, "Password did not match", null);
+      }
+      const updatePassword = await userModel.updateJobseeker(userId, {
+        password: await bcrypt.hash(newPassword, salt),
+        created_at: new Date(),
+      });
+      const filterObj = ["id", "created_at"];
+
+      const filtered = Object.keys(updatePassword.data[0])
+        .filter((key) => filterObj.includes(key))
+        .reduce(
+          (obj, key) => ({
+            ...obj,
+            [key]: user.data[0][key],
+          }),
+          {}
+        );
+      return wrapper.response(res, 200, "Password Success updated", filtered);
+    } catch (error) {
+      console.log(error);
       const { status, statusText, error: errorData } = error;
       return wrapper.response(res, status, statusText, errorData);
     }
