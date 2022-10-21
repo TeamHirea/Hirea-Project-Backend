@@ -46,4 +46,19 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
+  removeExperience: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const event = await experienceModel.deleteExperience(id);
+      console.log(event);
+      if (event.data.length === 0) {
+        return wrapper.response(res, 404, "data tidak ditemukan", null);
+      }
+
+      return wrapper.response(res, event.status, "delete data", event.data);
+    } catch (error) {
+      const { status, statusText, error: errorData } = error;
+      return wrapper.response(res, status, statusText, errorData);
+    }
+  },
 };
