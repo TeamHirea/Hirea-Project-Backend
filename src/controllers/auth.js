@@ -159,7 +159,8 @@ module.exports = {
   verifyjobseeker: async (request, response) => {
     try {
       const { otp } = request.params;
-      const checkOTP = await client.client.get(`otpJobseeker:${otp}`);
+      const checkOTP = await client.get(`otpJobseeker:${otp}`);
+
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
       });
