@@ -18,8 +18,6 @@ module.exports = {
       }
       cb(null, false);
       return cb(new Error("Only .png .jpg and .jpeg format allowed!"));
-<<<<<<< HEAD
-=======
     };
 
     const upload = multer({
@@ -56,7 +54,6 @@ module.exports = {
       }
       cb(null, false);
       return cb(new Error("Only .png .jpg and .jpeg format allowed!"));
->>>>>>> 8d402525b7c4fa9b9fb3f7743030ef2836f9f578
     };
 
     const upload = multer({
