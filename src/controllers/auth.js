@@ -321,7 +321,7 @@ module.exports = {
       }
 
       const payload = {
-        userId: checkEmail.data[0].userId,
+        userId: checkEmail.data[0].id,
       };
 
       const token = jwt.sign(payload, process.env.JWT_PRIVATE_ACCESS_KEY, {
