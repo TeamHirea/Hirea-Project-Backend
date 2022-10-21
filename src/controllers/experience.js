@@ -110,9 +110,8 @@ module.exports = {
     try {
       const { id } = req.params;
       const event = await experienceModel.deleteExperience(id);
-      console.log(event);
       if (event.data.length === 0) {
-        return wrapper.response(res, 404, "data tidak ditemukan", null);
+        return wrapper.response(res, 404, "data not found", null);
       }
 
       return wrapper.response(res, event.status, "delete data", event.data);
