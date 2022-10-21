@@ -23,7 +23,7 @@ module.exports = {
         confirmPassword,
       } = request.body;
       const checkEmail = await authModel.getRecruiterByEmail(email);
-      // const checkJobseeker = await authModel.getJobseekerByEmail(email);
+      const checkJobseeker = await authModel.getJobseekerByEmail(email);
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -56,6 +56,16 @@ module.exports = {
           response,
           400,
           "Email is Already Registered",
+          null
+        );
+      }
+
+      // check email if already register as jobseeker
+      if (checkJobseeker.data.length > 0) {
+        return wrapper.response(
+          response,
+          400,
+          "You've Registered as Jobseeker",
           null
         );
       }
@@ -187,7 +197,7 @@ module.exports = {
     try {
       const { name, email, phone, password, confirmPassword } = request.body;
       const checkEmail = await authModel.getJobseekerByEmail(email);
-      // const checkRecruiter = await authModel.getRecruiterByEmail(email);
+      const checkRecruiter = await authModel.getRecruiterByEmail(email);
 
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -219,6 +229,16 @@ module.exports = {
           response,
           400,
           "Email is Already Registered",
+          null
+        );
+      }
+
+      // check email if already registered as recruiter
+      if (checkRecruiter.data.length > 0) {
+        return wrapper.response(
+          response,
+          400,
+          "You've Registered as Recruiter",
           null
         );
       }
