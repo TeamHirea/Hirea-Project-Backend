@@ -1,21 +1,23 @@
 // const jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 const wrapper = require("../utils/responseHandler");
 const client = require("../config/redis");
 const userModel = require("../models/user");
-const jwt = require("jsonwebtoken");
 
 module.exports = {
   authentication: async (request, response, next) => {
     try {
       let token = request.headers.authorization;
-      console.log(token)
+      console.log(token);
       if (!token) {
         return wrapper.response(response, 403, "Please Login First", null);
       }
 
       token = token.split(" ")[1];
 
-      const checkTokenBlackList = await client.client.get(`accessToken:${token}`);
+      const checkTokenBlackList = await client.client.get(
+        `accessToken:${token}`
+      );
 
       if (checkTokenBlackList) {
         return wrapper.response(
@@ -38,6 +40,4 @@ module.exports = {
       console.log(error);
     }
   },
-
-  
 };

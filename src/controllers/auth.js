@@ -23,6 +23,7 @@ module.exports = {
         confirmPassword,
       } = request.body;
       const checkEmail = await authModel.getRecruiterByEmail(email);
+      const checkJobseeker = await authModel.getJobseekerByEmail(email);
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -59,6 +60,16 @@ module.exports = {
         );
       }
 
+      // check email if already register as jobseeker
+      if (checkJobseeker.data.length > 0) {
+        return wrapper.response(
+          response,
+          400,
+          "You've Registered as Jobseeker",
+          null
+        );
+      }
+
       // save data by model
       await userModel.createRecruiter(setData);
       // get data user
@@ -88,7 +99,8 @@ module.exports = {
 
       await sendEmail(setMailOptions);
       // save OTP in redis
-      client.client.client.setEx(`otp:${otp}`, 3600, userId);
+
+      client.client.setEx(`otpRecruiter:${otp}`, 3600, userId);
 
       return wrapper.response(
         response,
@@ -109,7 +121,9 @@ module.exports = {
   verifyRecruiter: async (request, response) => {
     try {
       const { otp } = request.params;
-      const checkOTP = await client.client.get(`otp:${otp}`);
+
+      const checkOTP = await client.get(`otpRecruiter:${otp}`);
+
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
       });
@@ -125,7 +139,7 @@ module.exports = {
       console.log(checkOTP);
       const result = await userModel.updateRecruiter(checkOTP, setData);
 
-      client.client.client.del(`otp:${otp}`);
+      client.del(`otp:${otp}`);
       return wrapper.response(
         response,
         result.status,
@@ -145,7 +159,8 @@ module.exports = {
   verifyjobseeker: async (request, response) => {
     try {
       const { otp } = request.params;
-      const checkOTP = await client.client.get(`otpJobseeker:${otp}`);
+      const checkOTP = await client.get(`otpJobseeker:${otp}`);
+
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
       });
@@ -161,7 +176,8 @@ module.exports = {
       console.log(checkOTP);
       const result = await userModel.updateJobseeker(checkOTP, setData);
 
-      // client.client.client.del(`otp:${otp}`);
+      client.del(`otpJobseeker:${otp}`);
+
       return wrapper.response(
         response,
         result.status,
@@ -182,6 +198,8 @@ module.exports = {
     try {
       const { name, email, phone, password, confirmPassword } = request.body;
       const checkEmail = await authModel.getJobseekerByEmail(email);
+      const checkRecruiter = await authModel.getRecruiterByEmail(email);
+
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -212,6 +230,16 @@ module.exports = {
           response,
           400,
           "Email is Already Registered",
+          null
+        );
+      }
+
+      // check email if already registered as recruiter
+      if (checkRecruiter.data.length > 0) {
+        return wrapper.response(
+          response,
+          400,
+          "You've Registered as Recruiter",
           null
         );
       }
@@ -248,7 +276,7 @@ module.exports = {
       await sendEmail(setMailOptions);
 
       // save OTP in redis
-      client.client.client.setEx(`otpJobseeker:${otp}`, 3600, userId);
+      client.client.setEx(`otpJobseeker:${otp}`, 3600, userId);
 
       return wrapper.response(
         response,
@@ -388,6 +416,7 @@ module.exports = {
       const findEmailRecruiter = await authModel.getRecruiterByEmail(email);
       const findEmailJobseeker = await authModel.getJobseekerByEmail(email);
       const generateOtp = Math.floor(100000 + Math.random() * 900000);
+      let findEmail;
       if (
         findEmailJobseeker.data.length === 0 &&
         findEmailRecruiter.data.length === 0
@@ -541,8 +570,8 @@ module.exports = {
       // eslint-disable-next-line prefer-destructuring
       const { refreshtoken } = req.headers;
       token = token.split(" ")[1];
-      client.setEx(`accessToken:${token}`, 3600, token);
-      client.setEx(`refreshToken:${refreshtoken}`, 3600, refreshtoken);
+      client.client.setEx(`accessToken:${token}`, 3600, token);
+      client.client.setEx(`refreshToken:${refreshtoken}`, 3600, refreshtoken);
       return wrapper.response(res, 200, "success log out", null);
     } catch (error) {
       console.log(error);
@@ -621,26 +650,6 @@ module.exports = {
         token,
         refreshToken: newRefreshToken,
       });
-    } catch (error) {
-      console.log(error);
-      const {
-        status = 500,
-        statusText = "Internal Server Error",
-        error: errorData = null,
-      } = error;
-      return wrapper.response(res, status, statusText, errorData);
-    }
-  },
-  logout: async (req, res) => {
-    try {
-      let token = req.headers.authorization;
-      // eslint-disable-next-line prefer-destructuring
-      const { refreshtoken } = req.headers;
-      console.log(token);
-      token = token.split(" ")[1];
-      client.client.setEx(`accessToken:${token}`, 3600, token);
-      client.client.setEx(`refreshToken:${refreshtoken}`, 3600, refreshtoken);
-      return wrapper.response(res, 200, "success log out", null);
     } catch (error) {
       console.log(error);
       const {
