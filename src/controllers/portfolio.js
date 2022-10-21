@@ -115,4 +115,32 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
+  deletePortfolio: async (request, response) => {
+    try {
+      const { id } = request.params;
+
+      const checkId = await portfolioModel.getPortfolioById(id);
+
+      if (checkId.data.length < 1) {
+        return wrapper.response(
+          response,
+          404,
+          `Data By Id ${id} Not Found`,
+          []
+        );
+      }
+
+      cloudinary.uploader.destroy(checkId.data[0].image, (result) => result);
+      await portfolioModel.deletePortfolio(id);
+
+      return wrapper.response(response, 200, "Success Delete Portfolio", null);
+    } catch (error) {
+      const {
+        status = 500,
+        statusText = "Internal Server Error",
+        error: errorData = null,
+      } = error;
+      return wrapper.response(response, status, statusText, errorData);
+    }
+  },
 };
