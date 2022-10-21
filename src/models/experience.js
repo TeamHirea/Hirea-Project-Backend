@@ -27,6 +27,7 @@ module.exports = {
         .from("experience")
         .delete()
         .eq("id", id)
+        .select("*")
         .then((result) => {
           if (!result.error) {
             resolve(result);

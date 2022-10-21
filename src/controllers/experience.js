@@ -48,15 +48,13 @@ module.exports = {
   },
   removeExperience: async (req, res) => {
     try {
-      const { eventId } = req.params;
-      const event = await eventModel.deleteEvent(eventId);
-
+      const { id } = req.params;
+      const event = await experienceModel.deleteExperience(id);
+      console.log(event);
       if (event.data.length === 0) {
         return wrapper.response(res, 404, "data tidak ditemukan", null);
       }
-      cloudinary.uploader.destroy(event?.data[0]?.image, (result) => {
-        console.log(result);
-      });
+
       return wrapper.response(res, event.status, "delete data", event.data);
     } catch (error) {
       const { status, statusText, error: errorData } = error;
