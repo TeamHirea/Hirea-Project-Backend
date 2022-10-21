@@ -91,7 +91,7 @@ module.exports = {
       await sendEmail(setMailOptions);
       // save OTP in redis
 
-      client.client.setEx(`otpRecruiter:${otp}`, 3600, userId);
+      client.setEx(`otpRecruiter:${otp}`, 3600, userId);
 
       return wrapper.response(
         response,
@@ -112,7 +112,7 @@ module.exports = {
     try {
       const { otp } = request.params;
 
-      const checkOTP = await client.client.get(`otpRecruiter:${otp}`);
+      const checkOTP = await client.get(`otpRecruiter:${otp}`);
 
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
@@ -129,7 +129,7 @@ module.exports = {
 
       const result = await userModel.updateRecruiter(checkOTP, setData);
 
-      client.client.client.del(`otp:${otp}`);
+      client.del(`otp:${otp}`);
       return wrapper.response(
         response,
         result.status,
