@@ -22,7 +22,7 @@ module.exports = {
         confirmPassword,
       } = request.body;
       const checkEmail = await authModel.getRecruiterByEmail(email);
-      const checkJobseeker = await authModel.getJobseekerByEmail(email);
+      // const checkJobseeker = await authModel.getJobseekerByEmail(email);
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -185,7 +185,7 @@ module.exports = {
     try {
       const { name, email, phone, password, confirmPassword } = request.body;
       const checkEmail = await authModel.getJobseekerByEmail(email);
-      const checkRecruiter = await authModel.getRecruiterByEmail(email);
+      // const checkRecruiter = await authModel.getRecruiterByEmail(email);
 
       //   Hashing Password
       const hashedPassword = await bcrypt.hash(password, 10);
