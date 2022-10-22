@@ -59,7 +59,7 @@ module.exports = {
       supabase
         .from("experience")
         .select()
-        .eq("id", id)
+        .eq("id_jobseeker", id)
         .then((result) => {
           if (!result.error) {
             resolve(result);
