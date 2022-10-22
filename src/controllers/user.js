@@ -11,21 +11,21 @@ module.exports = {
       page = +page || 1;
       limit = +limit || 5;
       column = column || "skill";
-      order = order === "true";
+      order = order === "true"; // converting given string to boolean
       let { search } = request.query || "";
 
       if (search) {
         search = search.split(",");
       } else {
-        search = [];
+        search = []; // if the search keyword is empty string or undefined, assign empty array to variable `search`
       }
 
       if (page < 1) {
-        page = 1;
+        page = 1; // set page to 1 if user gave minus value
       }
 
       if (limit < 1) {
-        limit = 5;
+        limit = 5; // set page to 1 if user gave minus value
       }
 
       const totalData = await userModel.getCountJobSeekers(search);

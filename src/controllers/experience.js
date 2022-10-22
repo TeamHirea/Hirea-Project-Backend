@@ -44,7 +44,6 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
-  // code below still not working: error with foreign key constraint
   createJobSeekerExperience: async (request, response) => {
     try {
       const { title, company, start_date, end_date, detail, id_jobseeker } =
