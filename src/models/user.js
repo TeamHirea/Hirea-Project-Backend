@@ -71,14 +71,16 @@ module.exports = {
           }
         });
     }),
-  // need some fixes
   getAllJobSeekers: (objParams) =>
     new Promise((resolve, reject) => {
-      supabase
-        .from("jobseeker")
-        .select("*")
-        // .ilike("skill", `%${objParams.countingParams.search}%`)
-        .order(objParams.column, { ascending: objParams.order }) // sorting the results based on column and order type entered
+      let query = supabase.from("jobseeker").select("*");
+
+      if (objParams.search.length > 0) {
+        query = query.contains("skill", objParams.search);
+      }
+
+      query
+        .order(objParams.column, { ascending: objParams.order })
         .range(objParams.offset, objParams.offset + objParams.limit - 1)
         .then((result) => {
           if (!result.error) {
@@ -88,20 +90,21 @@ module.exports = {
           }
         });
     }),
-  // still not working properly
-  getCountJobSeekers: () =>
+  getCountJobSeekers: (dataArr) =>
     new Promise((resolve, reject) => {
-      supabase
-        .from("jobseeker")
-        .select("*", { count: "exact" })
-        // .ilike("skill", `${searchKeyword.search}`)
-        .then((result) => {
-          if (!result.error) {
-            resolve(result.count);
-          } else {
-            reject(result);
-          }
-        });
+      let query = supabase.from("jobseeker").select("*", { count: "exact" });
+
+      if (dataArr.length > 0) {
+        query = query.contains("skill", dataArr);
+      }
+
+      query.then((result) => {
+        if (!result.error) {
+          resolve(result.count);
+        } else {
+          reject(result);
+        }
+      });
     }),
   getJobSeekersById: (id) =>
     new Promise((resolve, reject) => {

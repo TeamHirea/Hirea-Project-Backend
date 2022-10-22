@@ -7,12 +7,18 @@ const cloudinary = require("../config/cloudinary");
 module.exports = {
   getAllJobSeekers: async (request, response) => {
     try {
-      let { page, limit, search, column, order } = request.query;
+      let { page, limit, column, order } = request.query;
       page = +page || 1;
       limit = +limit || 5;
-      search = search || "";
       column = column || "skill";
       order = order === "true";
+      let { search } = request.query || "";
+
+      if (search) {
+        search = search.split(",");
+      } else {
+        search = [];
+      }
 
       if (page < 1) {
         page = 1;
@@ -22,14 +28,12 @@ module.exports = {
         limit = 5;
       }
 
-      const countingParams = { search };
-      const totalData = await userModel.getCountJobSeekers(countingParams);
-
+      const totalData = await userModel.getCountJobSeekers(search);
       const totalPage = Math.ceil(totalData / limit);
       const pagination = { page, limit, totalData, totalPage };
       const offset = page * limit - limit;
 
-      const setData = { offset, limit, column, order, countingParams };
+      const setData = { offset, limit, column, order, search };
 
       const result = await userModel.getAllJobSeekers(setData);
 
@@ -37,7 +41,7 @@ module.exports = {
         return wrapper.response(
           response,
           404,
-          "No Job Seeker found on database!",
+          "No Job Seeker with given query found on database!",
           []
         );
       }
