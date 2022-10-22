@@ -379,7 +379,7 @@ module.exports = {
       }
 
       const payload = {
-        userId: checkEmail.data[0].userId,
+        userId: checkEmail.data[0].id,
       };
 
       const token = jwt.sign(payload, process.env.JWT_PRIVATE_ACCESS_KEY, {
@@ -476,7 +476,9 @@ module.exports = {
         message: "Please confirm your OTP by clicking the link",
         otp: generateOtp,
         template: "template-1.html",
-        button: `http://localhost:8080/api/auth/resetPassword/${generateOtp}`,
+        // url: `http://localhost:8080/api/auth/resetPassword/${generateOtp}`,
+        url: `http://localhost:3000/reset/${generateOtp}`,
+        button: "Click Here",
       };
 
       await sendEmail(setMailOptions);
@@ -563,7 +565,6 @@ module.exports = {
       return wrapper.response(res, status, statusText, errorData);
     }
   },
-
   logout: async (req, res) => {
     try {
       let token = req.headers.authorization;
