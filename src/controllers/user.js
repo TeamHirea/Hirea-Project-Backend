@@ -206,7 +206,6 @@ module.exports = {
   updatePasswordJobSeeker: async (req, res) => {
     try {
       const { userId } = req.params;
-      console.log(userId);
       const { confirmPassword, oldPassword, newPassword } = req.body;
       if (!confirmPassword || !oldPassword || !newPassword) {
         return wrapper.response(res, 401, "some field still empty", null);
@@ -240,7 +239,6 @@ module.exports = {
         );
       return wrapper.response(res, 200, "Password Success updated", filtered);
     } catch (error) {
-      console.log(error);
       const { status, statusText, error: errorData } = error;
       return wrapper.response(res, status, statusText, errorData);
     }

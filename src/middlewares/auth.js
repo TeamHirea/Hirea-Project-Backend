@@ -2,18 +2,18 @@
 const jwt = require("jsonwebtoken");
 const wrapper = require("../utils/responseHandler");
 const client = require("../config/redis");
-const userModel = require("../models/user");
+// const userModel = require("../models/user");
 
 module.exports = {
+  // eslint-disable-next-line consistent-return
   authentication: async (request, response, next) => {
     try {
-      let token = request.headers.authorization;
-      console.log(token);
-      if (!token) {
+      const bearertoken = request.headers.authorization;
+      if (!bearertoken) {
         return wrapper.response(response, 403, "Please Login First", null);
       }
 
-      token = token.split(" ")[1];
+      const token = bearertoken.split(" ")[1];
 
       const checkTokenBlackList = await client.client.get(
         `accessToken:${token}`
@@ -28,16 +28,18 @@ module.exports = {
         );
       }
 
-      jwt.verify(token, process.env.JWT_PRIVATE_ACCESS_KEY, (err, decoded) => {
-        if (err) {
-          console.log(err);
-          return wrapper.response(response, 403, err.message, null);
+      return jwt.verify(
+        token,
+        process.env.JWT_PRIVATE_ACCESS_KEY,
+        (err, decoded) => {
+          if (err) {
+            return wrapper.response(response, 403, err.message, null);
+          }
+          request.user = decoded;
+          return next();
         }
-        request.user = decoded;
-        return next();
-      });
-    } catch (error) {
-      console.log(error);
-    }
+      );
+      // eslint-disable-next-line no-empty
+    } catch (error) {}
   },
 };

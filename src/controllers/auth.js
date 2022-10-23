@@ -109,7 +109,6 @@ module.exports = {
         { id: userId }
       );
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -136,7 +135,6 @@ module.exports = {
         activatedAt: today,
         statusUser: "active",
       };
-      console.log(checkOTP);
       const result = await userModel.updateRecruiter(checkOTP, setData);
 
       client.client.del(`otp:${otp}`);
@@ -147,7 +145,6 @@ module.exports = {
         { userId: checkOTP }
       );
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -173,7 +170,6 @@ module.exports = {
         activated_at: today,
         statusUser: "active",
       };
-      console.log(checkOTP);
       const result = await userModel.updateJobseeker(checkOTP, setData);
 
       client.client.del(`otpJobseeker:${otp}`);
@@ -185,7 +181,6 @@ module.exports = {
         { userId: checkOTP }
       );
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -314,7 +309,6 @@ module.exports = {
       if (!validate) {
         return wrapper.response(res, 401, "Wrong Password!", null);
       }
-      console.log(checkEmail);
       if (checkEmail.data[0].statusUser !== "active") {
         return wrapper.response(res, 401, "Verify your email first", null);
       }
@@ -342,7 +336,6 @@ module.exports = {
         refreshToken,
       });
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -372,7 +365,6 @@ module.exports = {
       if (!validate) {
         return wrapper.response(res, 401, "Wrong Password!", null);
       }
-      console.log(checkEmail);
       if (checkEmail.data[0].statusUser !== "active") {
         return wrapper.response(res, 401, "Verify your email first", null);
       }
@@ -400,7 +392,6 @@ module.exports = {
         refreshToken,
       });
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -508,15 +499,12 @@ module.exports = {
     try {
       const { otp } = req.params;
       const { newPassword, confirmPassword } = req.body;
-      let resetPasswordOtp;
-      resetPasswordOtp = (await client.client.get(
+      const resetPasswordOtp = (await client.client.get(
         `forgotPasswordJobSeekerOTP:${otp}`
       ))
         ? await client.client.get(`forgotPasswordJobSeekerOTP:${otp}`)
         : await client.client.get(`forgotPasswordOTP:${otp}`);
-      console.log(resetPasswordOtp);
       const userReset = JSON.parse(resetPasswordOtp);
-      console.log(userReset);
       if (!resetPasswordOtp) {
         return wrapper.response(
           res,
@@ -554,7 +542,6 @@ module.exports = {
         userId: user.data[0].id,
       });
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -565,15 +552,14 @@ module.exports = {
   },
   logout: async (req, res) => {
     try {
-      let token = req.headers.authorization;
+      const bearertoken = req.headers.authorization;
       // eslint-disable-next-line prefer-destructuring
       const { refreshtoken } = req.headers;
-      token = token.split(" ")[1];
+      const token = bearertoken.split(" ")[1];
       client.client.setEx(`accessToken:${token}`, 3600, token);
       client.client.setEx(`refreshToken:${refreshtoken}`, 3600, refreshtoken);
       return wrapper.response(res, 200, "success log out", null);
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -636,7 +622,7 @@ module.exports = {
             }
           );
 
-          client.client.setEx(
+          return client.client.setEx(
             `refreshToken:${refreshtoken}`,
             3600 * 36,
             refreshtoken
@@ -650,7 +636,6 @@ module.exports = {
         refreshToken: newRefreshToken,
       });
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
