@@ -5,7 +5,10 @@ const cloudinary = require("../config/cloudinary");
 module.exports = {
   createPortfolio: async (request, response) => {
     try {
-      const { filename } = request.file;
+      let filename;
+      if (request.file) {
+        filename = request.file.filename;
+      }
 
       const { idJobseeker, url, title } = request.body;
       const setData = {
@@ -14,7 +17,6 @@ module.exports = {
         title,
         image: filename || "",
       };
-
       await portfolioModel.createPortfolio(setData);
       // get data portfolio
       const getDataPortfolio = await portfolioModel.getPortfolioByTitle(title);
@@ -108,7 +110,6 @@ module.exports = {
         result.data
       );
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -143,7 +144,6 @@ module.exports = {
         statusText = "Internal Server Error",
         error: errorData = null,
       } = error;
-      console.log(error);
       return wrapper.response(response, status, statusText, errorData);
     }
   },
