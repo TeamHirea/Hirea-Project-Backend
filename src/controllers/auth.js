@@ -249,7 +249,7 @@ module.exports = {
 
       // get data user
       const getDataUser = await authModel.getJobseekerByEmail(email);
-      console.log(getDataUser);
+
       delete getDataUser.data[0].password;
 
       const userId = getDataUser.data[0].id;
@@ -285,7 +285,6 @@ module.exports = {
         { id: userId }
       );
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -496,7 +495,6 @@ module.exports = {
         [{ email: findEmail.data[0].email }]
       );
     } catch (error) {
-      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",

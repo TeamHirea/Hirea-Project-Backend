@@ -84,17 +84,19 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
-  getPortfolioById: async (request, response) => {
+  getPortfolioByIdJobseeker: async (request, response) => {
     try {
-      const { id } = request.params;
+      const { idJobseeker } = request.params;
 
-      const result = await portfolioModel.getPortfolioById(id);
+      const result = await portfolioModel.getPortfolioByIdJobseeker(
+        idJobseeker
+      );
 
       if (result.data.length < 1) {
         return wrapper.response(
           response,
           404,
-          `portfolio By Id ${id} Not Found`,
+          `portfolio By Id ${idJobseeker} Not Found`,
           []
         );
       }
@@ -102,10 +104,11 @@ module.exports = {
       return wrapper.response(
         response,
         result.status,
-        "Success Get portfolio By Id",
+        "Success Get portfolio By Id Jobseeker",
         result.data
       );
     } catch (error) {
+      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -140,6 +143,7 @@ module.exports = {
         statusText = "Internal Server Error",
         error: errorData = null,
       } = error;
+      console.log(error);
       return wrapper.response(response, status, statusText, errorData);
     }
   },
