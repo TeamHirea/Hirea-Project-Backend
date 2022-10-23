@@ -122,7 +122,7 @@ module.exports = {
     try {
       const { otp } = request.params;
 
-      const checkOTP = await client.get(`otpRecruiter:${otp}`);
+      const checkOTP = await client.client.get(`otpRecruiter:${otp}`);
 
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
@@ -139,7 +139,7 @@ module.exports = {
       console.log(checkOTP);
       const result = await userModel.updateRecruiter(checkOTP, setData);
 
-      client.del(`otp:${otp}`);
+      client.client.del(`otp:${otp}`);
       return wrapper.response(
         response,
         result.status,
