@@ -39,15 +39,11 @@ module.exports = {
   },
   updatePortfolio: async (request, response) => {
     try {
-      // console.log(request.params);
-      // console.log(request.body);
       const { id } = request.params;
 
-      // console.log(request.file);
       const { title, url } = request.body;
 
       const checkId = await portfolioModel.getPortfolioById(id);
-      // console.log(checkId);
       if (checkId.data.length < 1) {
         return wrapper.response(
           response,
@@ -82,7 +78,6 @@ module.exports = {
         statusText = "Internal Server Error",
         error: errorData = null,
       } = error;
-      // console.log(error);
       return wrapper.response(response, status, statusText, errorData);
     }
   },
