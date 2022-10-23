@@ -14,7 +14,7 @@ module.exports = {
           }
         });
     }),
-    getRecruiterById: (id) =>
+  getRecruiterById: (id) =>
     new Promise((resolve, reject) => {
       supabase
         .from("recruiter")
@@ -42,8 +42,7 @@ module.exports = {
         });
     }),
   updateRecruiter: (userId, data) =>
-  new Promise((resolve, reject) => {
-      console.log(userId, data)
+    new Promise((resolve, reject) => {
       supabase
         .from("recruiter")
         .update(data)
@@ -74,40 +73,38 @@ module.exports = {
     }),
   getAllJobSeekers: (objParams) =>
     new Promise((resolve, reject) => {
-      let query = supabase
-        .from("jobseeker")
-        .select("*")
-        .ilike("skill", `%${objParams.countingParams.search}%`)
-        .order(objParams.column, { ascending: objParams.order }) // sorting the results based on column and order type entered
-        .range(objParams.offset, objParams.offset + objParams.limit - 1);
+      let query = supabase.from("jobseeker").select("*");
 
-      if (Object.hasOwn(objParams.countingParams, "previousDay")) {
-        query = query
-          .gt("dateTimeShow", objParams.countingParams.previousDay)
-          .lt("dateTimeShow", objParams.countingParams.nextDay);
+      if (objParams.search.length > 0) {
+        query = query.contains("skill", objParams.search);
       }
 
-      query.then((result) => {
-        if (!result.error) {
-          resolve(result);
-        } else {
-          reject(result);
-        }
-      });
-    }),
-  getCountJobSeekers: () =>
-    new Promise((resolve, reject) => {
-      supabase
-        .from("jobseeker")
-        .select("*", { count: "exact" })
-        // .ilike("skill", `${searchKeyword.search}`)
+      query
+        .order(objParams.column, { ascending: objParams.order })
+        .range(objParams.offset, objParams.offset + objParams.limit - 1)
         .then((result) => {
           if (!result.error) {
-            resolve(result.count);
+            resolve(result);
           } else {
             reject(result);
           }
         });
+    }),
+  getCountJobSeekers: (dataArr) =>
+    new Promise((resolve, reject) => {
+      let query = supabase.from("jobseeker").select("*", { count: "exact" });
+
+      if (dataArr.length > 0) {
+        query = query.contains("skill", dataArr);
+      }
+
+      query.then((result) => {
+        if (!result.error) {
+          resolve(result.count);
+        } else {
+          reject(result);
+        }
+      });
     }),
   getJobSeekersById: (id) =>
     new Promise((resolve, reject) => {
