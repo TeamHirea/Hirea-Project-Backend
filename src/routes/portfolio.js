@@ -17,7 +17,7 @@ Router.patch(
   uploadMiddleware.uploadImagePortfolio,
   portfolioController.updatePortfolio
 );
-Router.get("/:id", portfolioController.getPortfolioById);
+Router.get("/:idJobseeker", portfolioController.getPortfolioByIdJobseeker);
 Router.delete("/delete/:id", portfolioController.deletePortfolio);
 
 module.exports = Router;
