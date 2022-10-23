@@ -28,13 +28,13 @@ module.exports = {
           }
         });
     }),
-  getPortfolioById: (id) =>
+  getPortfolioByIdJobseeker: (idJobseeker) =>
     new Promise((resolve, reject) => {
       // SELECT * FROM product WHERE id = "123"
       supabase
         .from("portfolio")
         .select("*")
-        .eq("id", id)
+        .eq("idJobseeker", idJobseeker)
         .then((result) => {
           if (!result.error) {
             resolve(result);
@@ -62,6 +62,21 @@ module.exports = {
       supabase
         .from("portfolio")
         .delete(data)
+        .eq("id", id)
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
+  getPortfolioById: (id) =>
+    new Promise((resolve, reject) => {
+      // SELECT * FROM product WHERE id = "123"
+      supabase
+        .from("portfolio")
+        .select("*")
         .eq("id", id)
         .then((result) => {
           if (!result.error) {
