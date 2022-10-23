@@ -8,7 +8,7 @@ module.exports = {
     const storage = new CloudinaryStorage({
       cloudinary,
       params: {
-        folder: "Hirea App/recruiter",
+        folder: "recruiter",
       },
     });
 
@@ -44,7 +44,7 @@ module.exports = {
     const storage = new CloudinaryStorage({
       cloudinary,
       params: {
-        folder: "Hirea App/jobseeker",
+        folder: "jobseeker",
       },
     });
 
@@ -80,7 +80,7 @@ module.exports = {
     const storage = new CloudinaryStorage({
       cloudinary,
       params: {
-        folder: "Hirea App/Portfolio",
+        folder: "Portfolio",
       },
     });
 
