@@ -94,7 +94,7 @@ module.exports = {
         message: "Please confirm your OTP by clicking the link",
         otp,
         template: "template-1.html",
-        button: `http://localhost:8080/api/auth/verify/${otp}`,
+        button: `http://localhost:3000/recruiter/activated/${otp}`,
       };
 
       await sendEmail(setMailOptions);
@@ -159,7 +159,7 @@ module.exports = {
   verifyjobseeker: async (request, response) => {
     try {
       const { otp } = request.params;
-      const checkOTP = await client.get(`otpJobseeker:${otp}`);
+      const checkOTP = await client.client.get(`otpJobseeker:${otp}`);
 
       const today = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Jakarta",
@@ -176,7 +176,7 @@ module.exports = {
       console.log(checkOTP);
       const result = await userModel.updateJobseeker(checkOTP, setData);
 
-      client.del(`otpJobseeker:${otp}`);
+      client.client.del(`otpJobseeker:${otp}`);
 
       return wrapper.response(
         response,
@@ -270,7 +270,7 @@ module.exports = {
         message: "Please confirm your OTP by clicking the link",
         otp,
         template: "template-1.html",
-        button: `http://localhost:8080/api/auth/verifyJobseeker/${otp}`,
+        button: `http://localhost:3000/jobseeker/activated/${otp}`,
       };
 
       await sendEmail(setMailOptions);
@@ -321,7 +321,7 @@ module.exports = {
       }
 
       const payload = {
-        userId: checkEmail.data[0].userId,
+        userId: checkEmail.data[0].id,
       };
 
       const token = jwt.sign(payload, process.env.JWT_PRIVATE_ACCESS_KEY, {
@@ -379,7 +379,7 @@ module.exports = {
       }
 
       const payload = {
-        userId: checkEmail.data[0].userId,
+        userId: checkEmail.data[0].id,
       };
 
       const token = jwt.sign(payload, process.env.JWT_PRIVATE_ACCESS_KEY, {
@@ -516,7 +516,7 @@ module.exports = {
         : await client.client.get(`forgotPasswordOTP:${otp}`);
       console.log(resetPasswordOtp);
       const userReset = JSON.parse(resetPasswordOtp);
-
+      console.log(userReset);
       if (!resetPasswordOtp) {
         return wrapper.response(
           res,
