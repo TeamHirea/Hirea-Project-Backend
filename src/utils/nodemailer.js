@@ -1,7 +1,9 @@
 const nodemailer = require("nodemailer");
 const handlebars = require("handlebars");
 const fs = require("fs");
-const { promisify } = require("util");
+const path = require("path");
+
+// const { promisify } = require("util");
 const accessToken = require("../config/gmail");
 require("dotenv").config();
 
@@ -21,9 +23,12 @@ const sendEmail = async (options) => {
     },
   });
 
-  const readFile = promisify(fs.readFile);
-  const html = await readFile(`./src/templates/${options.template}`, "utf8");
-  const template = handlebars.compile(html);
+  // const readFile = promisify(fs.readFile);
+  const filePath = path.join(__dirname, `../../templates/${options.template}`);
+  const fileTemplate = fs.readFileSync(filePath, "utf8");
+
+  // const html = await readFile(`./src/templates/${options.template}`, "utf8");
+  const template = handlebars.compile(fileTemplate);
 
   const mailOptions = {
     from: '"Hirea" <team.hirea@gmail.com>',
