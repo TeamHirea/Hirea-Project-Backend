@@ -20,6 +20,8 @@ module.exports = {
         search = []; // if the search keyword is empty string or undefined, assign empty array to variable `search`
       }
 
+      search = search.map((item) => item.toUpperCase());
+
       if (page < 1) {
         page = 1; // set page to 1 if user gave minus value
       }
