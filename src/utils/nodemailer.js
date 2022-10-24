@@ -24,7 +24,10 @@ const sendEmail = async (options) => {
   });
 
   // const readFile = promisify(fs.readFile);
-  const filePath = path.join(__dirname, `../../templates/${options.template}`);
+  const filePath = path.join(
+    __dirname,
+    `../../src/templates/${options.template}`
+  );
   const fileTemplate = fs.readFileSync(filePath, "utf8");
 
   // const html = await readFile(`./src/templates/${options.template}`, "utf8");
