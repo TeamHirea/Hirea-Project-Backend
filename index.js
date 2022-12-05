@@ -15,12 +15,12 @@ const corsOptions = {
   // origin: [`http://localhost:3000`, `https://hirea.netlify.app`],
   origin: "*",
   methods: ["GET", "POST", "PATCH", "DELETE"],
-  // allowedHeaders: [
-  //   "Content-Type",
-  //   "Authorization",
-  //   "x-access-token",
-  //   "refreshtoken",
-  // ],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "x-access-token",
+    "refreshtoken",
+  ],
 };
 
 redisConn();  
