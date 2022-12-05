@@ -486,6 +486,7 @@ module.exports = {
         [{ email: findEmail.data[0].email }]
       );
     } catch (error) {
+      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
