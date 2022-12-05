@@ -94,7 +94,8 @@ module.exports = {
         message: "Please confirm your OTP by clicking the link",
         otp,
         template: "template-1.html",
-        button: `http://localhost:3000/recruiter/activated/${otp}`,
+        button: "Activate",
+        url: `http://localhost:3000/recruiter/activated/${otp}`,
       };
 
       await sendEmail(setMailOptions);
@@ -280,6 +281,7 @@ module.exports = {
         { id: userId }
       );
     } catch (error) {
+      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",

@@ -36,8 +36,9 @@ module.exports = {
   updateJobSeekerSkill: async (request, response) => {
     try {
       const { id_jobseeker: id } = request.params;
-      const { skill } = request.body;
+      let { skill } = request.body;
 
+      skill = skill.map((item) => item.toUpperCase());
       const result = await skillModel.updateJobSeekerSkill(id, skill);
 
       return wrapper.response(
