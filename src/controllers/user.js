@@ -30,14 +30,27 @@ module.exports = {
         limit = 5; // set page to 1 if user gave minus value
       }
 
-      const totalData = await userModel.getCountJobSeekers(search);
-      const totalPage = Math.ceil(totalData / limit);
-      const pagination = { page, limit, totalData, totalPage };
+      // const totalData = await userModel.getCountJobSeekers(search);
+      // const totalData = 100; // test
+      // const totalPage = Math.ceil(totalData / limit);
+      // const pagination = { page, limit, totalData, totalPage };
       const offset = page * limit - limit;
 
       const setData = { offset, limit, column, order, search };
 
       const result = await userModel.getAllJobSeekers(setData);
+
+      let resultData = result.data.map((item) => {
+        if (item.skills.length > 0) {
+          return item;
+        }
+      });
+
+      resultData = resultData.filter((item) => item !== undefined);
+
+      const totalData = resultData.length;
+      const totalPage = Math.ceil(totalData / limit);
+      const pagination = { page, limit, totalData, totalPage };
 
       if (result.data.length < 1) {
         return wrapper.response(
@@ -52,7 +65,7 @@ module.exports = {
         response,
         result.status,
         "Success Get All Job Seeker",
-        result.data,
+        resultData,
         pagination
       );
     } catch (error) {
