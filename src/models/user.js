@@ -73,15 +73,30 @@ module.exports = {
     }),
   getAllJobSeekers: (objParams) =>
     new Promise((resolve, reject) => {
-      let query = supabase.from("jobseeker").select("*");
+      const query = supabase.from("jobseeker").select("*");
 
-      if (objParams.search.length > 0) {
-        query = query.contains("skill", objParams.search);
-      }
+      // if (objParams.search.length > 0) {
+      //   query = query.contains("skills_backup", objParams.search);
+      // }
 
       query
         .order(objParams.column, { ascending: objParams.order })
         .range(objParams.offset, objParams.offset + objParams.limit - 1)
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
+
+  getSearchSkill: (search) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("skills")
+        .select("*")
+        // .ilike("skill_name", `%${search}%`)
         .then((result) => {
           if (!result.error) {
             resolve(result);
@@ -95,7 +110,7 @@ module.exports = {
       let query = supabase.from("jobseeker").select("*", { count: "exact" });
 
       if (dataArr.length > 0) {
-        query = query.contains("skill", dataArr);
+        query = query.contains("skills_backup", dataArr);
       }
 
       query.then((result) => {

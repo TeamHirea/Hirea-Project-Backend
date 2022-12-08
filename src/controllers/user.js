@@ -10,7 +10,7 @@ module.exports = {
       let { page, limit, column, order } = request.query;
       page = +page || 1;
       limit = +limit || 5;
-      column = column || "skill";
+      column = column || "skills_backup";
       order = order === "true"; // converting given string to boolean
       let { search } = request.query || "";
 
@@ -19,8 +19,7 @@ module.exports = {
       } else {
         search = []; // if the search keyword is empty string or undefined, assign empty array to variable `search`
       }
-
-      search = search.map((item) => item.toUpperCase());
+      // search = search.map((item) => item.toUpperCase());
 
       if (page < 1) {
         page = 1; // set page to 1 if user gave minus value
@@ -48,6 +47,11 @@ module.exports = {
         );
       }
 
+      if (setData.search[0]) {
+        const result1 = await userModel.getSearchSkill(setData.search[0]);
+        console.log(result1);
+      }
+
       return wrapper.response(
         response,
         result.status,
@@ -56,6 +60,7 @@ module.exports = {
         pagination
       );
     } catch (error) {
+      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
