@@ -8,19 +8,13 @@ module.exports = {
   getAllJobSeekers: async (request, response) => {
     try {
       let { page, limit, column, order } = request.query;
+      const { filter } = request.query;
       page = +page || 1;
       limit = +limit || 5;
-      column = column || "skill";
-      order = order === "true"; // converting given string to boolean
+      column = column || "name";
+      order = order || "ASC"; // converting given string to boolean
       let { search } = request.query || "";
-
-      if (search) {
-        search = search.split(",");
-      } else {
-        search = []; // if the search keyword is empty string or undefined, assign empty array to variable `search`
-      }
-
-      search = search.map((item) => item.toUpperCase());
+      search = search || "";
 
       if (page < 1) {
         page = 1; // set page to 1 if user gave minus value
@@ -30,29 +24,36 @@ module.exports = {
         limit = 5; // set page to 1 if user gave minus value
       }
 
-      // const totalData = await userModel.getCountJobSeekers(search);
-      // const totalData = 100; // test
-      // const totalPage = Math.ceil(totalData / limit);
-      // const pagination = { page, limit, totalData, totalPage };
       const offset = page * limit - limit;
 
-      const setData = { offset, limit, column, order, search };
+      const setData = { offset, limit, column, order, search, filter };
 
-      const result = await userModel.getAllJobSeekers(setData);
+      const countResult = await userModel.getCountJobSeekers(setData);
+      const result = await userModel.pgGetAllJobSeekers(setData);
+      // console.log(result);
 
-      let resultData = result.data.map((item) => {
-        if (item.skills.length > 0) {
-          return item;
-        }
-      });
-
-      resultData = resultData.filter((item) => item !== undefined);
-
-      const totalData = resultData.length;
+      const totalData = countResult.rowCount;
       const totalPage = Math.ceil(totalData / limit);
       const pagination = { page, limit, totalData, totalPage };
 
-      if (result.data.length < 1) {
+      const searchResult = [];
+
+      const getUser = async (user) => {
+        try {
+          const checkUser = await userModel.searchJobSeekersById(user.id);
+          await searchResult.push(checkUser.data[0]);
+        } catch (error) {
+          // console.log(error);
+        }
+      };
+
+      await Promise.all(
+        result.rows.map(async (item) => {
+          await getUser(item);
+        })
+      );
+
+      if (searchResult.length < 1) {
         return wrapper.response(
           response,
           404,
@@ -63,9 +64,9 @@ module.exports = {
 
       return wrapper.response(
         response,
-        result.status,
+        200,
         "Success Get All Job Seeker",
-        resultData,
+        searchResult,
         pagination
       );
     } catch (error) {

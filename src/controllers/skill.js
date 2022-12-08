@@ -9,7 +9,7 @@ module.exports = {
 
       const result = await skillModel.getJobSeekerSkill(id);
 
-      if (result.data[0].skill === null) {
+      if (result.data[0].skills.length < 1) {
         return wrapper.response(
           response,
           404,
@@ -136,7 +136,6 @@ module.exports = {
       const { id_jobseeker: id } = request.params;
       const { skill_id: skillId } = request.body;
 
-      console.log(request.body);
       const checkUser = await userModel.getJobSeekersById(id);
 
       if (checkUser.data.length < 1) {
@@ -153,7 +152,7 @@ module.exports = {
           response,
           404,
           "Skill id shouldn't be empty",
-          request.body
+          []
         );
       }
 

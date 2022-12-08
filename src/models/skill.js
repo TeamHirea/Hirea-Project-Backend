@@ -5,7 +5,7 @@ module.exports = {
     new Promise((resolve, reject) => {
       supabase
         .from("jobseeker")
-        .select("name, skills(skill_name, skill_id)")
+        .select("id, name, skills(skill_name, skill_id)")
         .eq("id", id)
         .then((result) => {
           if (!result.error) {
