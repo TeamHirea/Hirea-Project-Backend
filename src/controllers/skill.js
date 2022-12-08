@@ -51,6 +51,17 @@ module.exports = {
         );
       }
 
+      const checkSkill = await skillModel.getJobSeekerSkillById(skillId);
+
+      if (checkSkill.data.length < 1) {
+        return wrapper.response(
+          response,
+          404,
+          "Skill with given id doesn't exist",
+          []
+        );
+      }
+
       const result = await skillModel.updateJobSeekerSkill(
         id,
         skillId,
@@ -125,6 +136,7 @@ module.exports = {
       const { id_jobseeker: id } = request.params;
       const { skill_id: skillId } = request.body;
 
+      console.log(request.body);
       const checkUser = await userModel.getJobSeekersById(id);
 
       if (checkUser.data.length < 1) {
@@ -141,7 +153,7 @@ module.exports = {
           response,
           404,
           "Skill id shouldn't be empty",
-          []
+          request.body
         );
       }
 
@@ -158,7 +170,7 @@ module.exports = {
 
       const result = await skillModel.deleteJobSeekerSkill(id, skillId);
 
-      return wrapper.response(response, 204, "Event DELETED!", result.data);
+      return wrapper.response(response, 200, "Skill Deleted!", result.data);
     } catch (error) {
       const {
         status = 500,
