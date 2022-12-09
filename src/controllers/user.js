@@ -70,6 +70,7 @@ module.exports = {
         pagination
       );
     } catch (error) {
+      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
