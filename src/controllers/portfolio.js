@@ -17,6 +17,7 @@ module.exports = {
         title,
         image: filename || "",
       };
+      console.log(setData);
       await portfolioModel.createPortfolio(setData);
       // get data portfolio
       const getDataPortfolio = await portfolioModel.getPortfolioByTitle(title);
@@ -40,7 +41,7 @@ module.exports = {
   updatePortfolio: async (request, response) => {
     try {
       const { id } = request.params;
-
+      const image = request.file?.filename;
       const { title, url } = request.body;
 
       const checkId = await portfolioModel.getPortfolioById(id);
@@ -53,13 +54,14 @@ module.exports = {
         );
       }
 
-      let setData = {
+      const setData = {
         url,
         title,
+        image,
       };
-      if (request.file) {
-        const { filename } = request.file;
-        setData = { ...setData, image: filename || "" };
+      console.log(request.file);
+
+      if (image) {
         cloudinary.uploader.destroy(checkId.data[0].image, (result) => result);
       }
 
