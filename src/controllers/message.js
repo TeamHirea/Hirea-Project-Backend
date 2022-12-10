@@ -25,7 +25,7 @@ module.exports = {
 
       //   mailing
       const setMailOptions = {
-        jobseekerEmail: "setyawandwiki1@gmail.com",
+        jobseekerEmail: checkJobseeker.data[0].email,
         recruiterEmail: checkRecruiter.data[0].email,
         jobseekerName: checkJobseeker.data[0].name,
         company: checkRecruiter.data[0].company,
