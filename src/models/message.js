@@ -14,4 +14,18 @@ module.exports = {
           }
         });
     }),
+  getAllMessagesJobseeker: (idJobseeker) =>
+    new Promise((resolve, reject) => {
+      supabase
+        .from("message")
+        .select("*, recruiter(name, company)")
+        .eq("idJobseeker", idJobseeker)
+        .then((result) => {
+          if (!result.error) {
+            resolve(result);
+          } else {
+            reject(result);
+          }
+        });
+    }),
 };

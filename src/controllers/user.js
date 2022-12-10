@@ -7,22 +7,6 @@ const cloudinary = require("../config/cloudinary");
 module.exports = {
   getAllJobSeekers: async (request, response) => {
     try {
-<<<<<<< HEAD
-      let { page, limit, column, order, search } = request.query;
-      page = +page || 1;
-      limit = +limit || 5;
-      column = column || "skills_backup";
-      order = order === "true"; // converting given string to boolean
-      search = search || "";
-
-      console.log(search);
-      if (search) {
-        search = search.split(",");
-      } else {
-        search = []; // if the search keyword is empty string or undefined, assign empty array to variable `search`
-      }
-      // search = search.map((item) => item.toUpperCase());
-=======
       let { page, limit, column, order } = request.query;
       const { filter } = request.query;
       page = +page || 1;
@@ -31,7 +15,6 @@ module.exports = {
       order = order || "ASC"; // converting given string to boolean
       let { search } = request.query || "";
       search = search || "";
->>>>>>> b95ed3c5c0fa26b28c8c178fe9ae87cec98a3fae
 
       if (page < 1) {
         page = 1; // set page to 1 if user gave minus value
