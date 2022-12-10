@@ -53,7 +53,7 @@ module.exports = {
     }
   },
   getAllMessageJobseeker: async (req, res) => {
-    const { idJobseeker } = req.body;
+    const { idJobseeker } = req.params;
     try {
       const getAllMessage = await messageModel.getAllMessagesJobseeker(
         idJobseeker
