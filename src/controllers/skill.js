@@ -9,7 +9,7 @@ module.exports = {
 
       const result = await skillModel.getJobSeekerSkill(id);
 
-      if (result.data[0].skill === null) {
+      if (result.data[0].skills.length < 1) {
         return wrapper.response(
           response,
           404,
@@ -47,6 +47,17 @@ module.exports = {
           response,
           400,
           "Skill name should not be empty",
+          []
+        );
+      }
+
+      const checkSkill = await skillModel.getJobSeekerSkillById(skillId);
+
+      if (checkSkill.data.length < 1) {
+        return wrapper.response(
+          response,
+          404,
+          "Skill with given id doesn't exist",
           []
         );
       }
@@ -158,7 +169,7 @@ module.exports = {
 
       const result = await skillModel.deleteJobSeekerSkill(id, skillId);
 
-      return wrapper.response(response, 204, "Event DELETED!", result.data);
+      return wrapper.response(response, 200, "Skill Deleted!", result.data);
     } catch (error) {
       const {
         status = 500,

@@ -1,4 +1,5 @@
 const supabase = require("../config/supabase");
+const db = require("../config/postgre");
 
 module.exports = {
   createRecruiter: (data) =>
@@ -71,45 +72,95 @@ module.exports = {
           }
         });
     }),
-  getAllJobSeekers: (objParams) =>
+  pgGetAllJobSeekers: (objParams) =>
     new Promise((resolve, reject) => {
-      if (objParams.search.length < 1) {
-        objParams.search.push("");
+      let sqlQuery = `select j.id from jobseeker j inner join skills s on s.id_jobseeker = j.id where s.skill_name ilike '%' || $1 ||'%'`;
+      const sqlValue = [objParams.search];
+
+      if (objParams.filter) {
+        if (objParams.filter.toLowerCase() === "freelance") {
+          sqlQuery += " and j.job_type = $2";
+          sqlValue.push(objParams.filter);
+        }
+
+        if (objParams.filter.toLowerCase() === "fulltime") {
+          sqlQuery += " and j.job_type = $2";
+          sqlValue.push(objParams.filter);
+        }
       }
-      const query = supabase
-        .from("jobseeker")
-        .select("name, skills(skill_name, skill_id)");
 
-      query
-        .ilike("skills.skill_name", `%${objParams.search[0]}%`)
-        // .range(objParams.offset, objParams.offset + objParams.limit - 1)
+      sqlQuery += ` group by j.id order by lower(j.name) asc LIMIT $${
+        sqlValue.length + 1
+      } OFFSET $${sqlValue.length + 2}`;
+
+      sqlValue.push(objParams.limit);
+      sqlValue.push(objParams.offset);
+
+      db.query(sqlQuery, sqlValue)
         .then((result) => {
-          if (!result.error) {
-            resolve(result);
-          } else {
-            reject(result);
-          }
+          resolve(result);
+        })
+        .catch((error) => {
+          reject(error);
         });
-
-      // supabase
-      //   .from("jobseeker")
-      //   .select("id, name, skills(skill_id, skill_name)")
-      //   .ilike("skills.skill_name", "%Java%")
-      //   .then((result) => {
-      //     if (!result.error) {
-      //       resolve(result);
-      //     } else {
-      //       reject(result);
-      //     }
-      //   });
     }),
+  // getAllJobSeekers: (objParams) =>
+  //   new Promise((resolve, reject) => {
+  //     console.log(objParams);
+  //     // if (objParams.search.length < 1) {
+  //     //   objParams.search.push("");
+  //     // }
+  //     // console.log(objParams.search);
+  //     const query = supabase
+  //       .from("jobseeker")
+  //       .select("id, name, skills(skill_name, skill_id)", { count: "exact" });
 
-  getSearchSkill: (search) =>
+  //     query
+  //       .ilike("skills.skill_name", `%${objParams.search}%`)
+  //       .not("skills.skill_name", "is", null)
+  //       // .order("name", { ascending: objParams.order })
+  //       .range(objParams.offset, objParams.offset + objParams.limit - 1)
+  //       .then((result) => {
+  //         if (!result.error) {
+  //           resolve(result);
+  //         } else {
+  //           reject(result);
+  //         }
+  //       });
+  //   }),
+  getCountJobSeekers: (objParams) =>
+    new Promise((resolve, reject) => {
+      let sqlQuery = `select j.id from jobseeker j inner join skills s on s.id_jobseeker = j.id where s.skill_name ilike '%' || $1 ||'%'`;
+      const sqlValue = [objParams.search];
+
+      if (objParams.filter) {
+        if (objParams.filter.toLowerCase() === "freelance") {
+          sqlQuery += " and j.job_type = $2";
+          sqlValue.push(objParams.filter);
+        }
+
+        if (objParams.filter.toLowerCase() === "fulltime") {
+          sqlQuery += " and j.job_type = $2";
+          sqlValue.push(objParams.filter);
+        }
+      }
+
+      sqlQuery += " group by j.id";
+
+      db.query(sqlQuery, sqlValue)
+        .then((result) => {
+          resolve(result);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    }),
+  searchJobSeekersById: (id) =>
     new Promise((resolve, reject) => {
       supabase
-        .from("skills")
-        .select(`*, jobseeker("*")`)
-        .ilike("skill_name", `${search}`)
+        .from("jobseeker")
+        .select("*, skills(skill_name, skill_id)")
+        .eq("id", id)
         .then((result) => {
           if (!result.error) {
             resolve(result);
@@ -117,24 +168,6 @@ module.exports = {
             reject(result);
           }
         });
-    }),
-  getCountJobSeekers: (dataArr) =>
-    new Promise((resolve, reject) => {
-      const query = supabase
-        .from("jobseeker")
-        .select("*, skills(*)", { count: "exact" });
-
-      // if (dataArr.length > 0) {
-      //   query = query.contains("skill", dataArr);
-      // }
-
-      query.then((result) => {
-        if (!result.error) {
-          resolve(result.count);
-        } else {
-          reject(result);
-        }
-      });
     }),
   getJobSeekersById: (id) =>
     new Promise((resolve, reject) => {
