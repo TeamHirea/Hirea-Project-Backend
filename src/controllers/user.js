@@ -7,13 +7,14 @@ const cloudinary = require("../config/cloudinary");
 module.exports = {
   getAllJobSeekers: async (request, response) => {
     try {
-      let { page, limit, column, order } = request.query;
+      let { page, limit, column, order, search } = request.query;
       page = +page || 1;
       limit = +limit || 5;
       column = column || "skills_backup";
       order = order === "true"; // converting given string to boolean
-      let { search } = request.query || "";
+      search = search || "";
 
+      console.log(search);
       if (search) {
         search = search.split(",");
       } else {
@@ -29,14 +30,27 @@ module.exports = {
         limit = 5; // set page to 1 if user gave minus value
       }
 
-      const totalData = await userModel.getCountJobSeekers(search);
-      const totalPage = Math.ceil(totalData / limit);
-      const pagination = { page, limit, totalData, totalPage };
+      // const totalData = await userModel.getCountJobSeekers(search);
+      // const totalData = 100; // test
+      // const totalPage = Math.ceil(totalData / limit);
+      // const pagination = { page, limit, totalData, totalPage };
       const offset = page * limit - limit;
 
       const setData = { offset, limit, column, order, search };
 
       const result = await userModel.getAllJobSeekers(setData);
+
+      let resultData = result.data.map((item) => {
+        if (item.skills.length > 0) {
+          return item;
+        }
+      });
+
+      resultData = resultData.filter((item) => item !== undefined);
+
+      const totalData = resultData.length;
+      const totalPage = Math.ceil(totalData / limit);
+      const pagination = { page, limit, totalData, totalPage };
 
       if (result.data.length < 1) {
         return wrapper.response(
@@ -47,18 +61,27 @@ module.exports = {
         );
       }
 
-      if (setData.search[0]) {
-        const result1 = await userModel.getSearchSkill(setData.search[0]);
-        console.log(result1);
+      if (!setData.seearch) {
+        console.log("kondisi");
+        return wrapper.response(
+          response,
+          result.status,
+          "Success Get All Job Seeker",
+          resultData,
+          pagination
+        );
       }
 
-      return wrapper.response(
-        response,
-        result.status,
-        "Success Get All Job Seeker",
-        result.data,
-        pagination
-      );
+      if (setData.search) {
+        const result1 = await userModel.getSearchSkill(setData.search);
+        return wrapper.response(
+          response,
+          result1.status,
+          "Success Get All Job Seeker",
+          result1.data,
+          pagination
+        );
+      }
     } catch (error) {
       console.log(error);
       const {

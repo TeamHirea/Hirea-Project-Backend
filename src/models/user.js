@@ -73,15 +73,16 @@ module.exports = {
     }),
   getAllJobSeekers: (objParams) =>
     new Promise((resolve, reject) => {
-      const query = supabase.from("jobseeker").select("*");
-
-      // if (objParams.search.length > 0) {
-      //   query = query.contains("skills_backup", objParams.search);
-      // }
+      if (objParams.search.length < 1) {
+        objParams.search.push("");
+      }
+      const query = supabase
+        .from("jobseeker")
+        .select("name, skills(skill_name, skill_id)");
 
       query
-        .order(objParams.column, { ascending: objParams.order })
-        .range(objParams.offset, objParams.offset + objParams.limit - 1)
+        .ilike("skills.skill_name", `%${objParams.search[0]}%`)
+        // .range(objParams.offset, objParams.offset + objParams.limit - 1)
         .then((result) => {
           if (!result.error) {
             resolve(result);
@@ -89,14 +90,26 @@ module.exports = {
             reject(result);
           }
         });
+
+      // supabase
+      //   .from("jobseeker")
+      //   .select("id, name, skills(skill_id, skill_name)")
+      //   .ilike("skills.skill_name", "%Java%")
+      //   .then((result) => {
+      //     if (!result.error) {
+      //       resolve(result);
+      //     } else {
+      //       reject(result);
+      //     }
+      //   });
     }),
 
   getSearchSkill: (search) =>
     new Promise((resolve, reject) => {
       supabase
         .from("skills")
-        .select("*")
-        // .ilike("skill_name", `%${search}%`)
+        .select(`*, jobseeker("*")`)
+        .ilike("skill_name", `${search}`)
         .then((result) => {
           if (!result.error) {
             resolve(result);
@@ -107,11 +120,13 @@ module.exports = {
     }),
   getCountJobSeekers: (dataArr) =>
     new Promise((resolve, reject) => {
-      let query = supabase.from("jobseeker").select("*", { count: "exact" });
+      const query = supabase
+        .from("jobseeker")
+        .select("*, skills(*)", { count: "exact" });
 
-      if (dataArr.length > 0) {
-        query = query.contains("skills_backup", dataArr);
-      }
+      // if (dataArr.length > 0) {
+      //   query = query.contains("skill", dataArr);
+      // }
 
       query.then((result) => {
         if (!result.error) {
