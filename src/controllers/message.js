@@ -5,6 +5,7 @@ const wrapper = require("../utils/responseHandler");
 
 module.exports = {
   sendHireInvitation: async (request, response) => {
+    console.log("test1");
     try {
       const { idJobseeker, idRecruiter, subject, message } = request.body;
       const setData = {
@@ -20,10 +21,11 @@ module.exports = {
       const checkRecruiter = await userModel.getRecruiterById(idRecruiter);
       //   save data by model
       await messageModel.sendInvitation(setData);
+      console.log("test2");
 
       //   mailing
       const setMailOptions = {
-        jobseekerEmail: checkJobseeker.data[0].email,
+        jobseekerEmail: "setyawandwiki1@gmail.com",
         recruiterEmail: checkRecruiter.data[0].email,
         jobseekerName: checkJobseeker.data[0].name,
         company: checkRecruiter.data[0].company,
@@ -41,6 +43,7 @@ module.exports = {
         null
       );
     } catch (error) {
+      console.log(error);
       const {
         status = 500,
         statusText = "Internal Server Error",
@@ -49,4 +52,34 @@ module.exports = {
       return wrapper.response(response, status, statusText, errorData);
     }
   },
+  getAllMessageJobseeker: async (req, res) => {
+    const { idJobseeker } = req.body;
+    try {
+      const getAllMessage = await messageModel.getAllMessagesJobseeker(
+        idJobseeker
+      );
+      return wrapper.response(
+        res,
+        getAllMessage.status,
+        "success get all message to jobseeker",
+        getAllMessage.data
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  },
+  // sendMessageRecruiter: async (req, res) => {
+  //   try {
+  //     const getAllMessage = await messageModel.getAllMessagesJobseeker();
+  //     console.log("test");
+  //     return wrapper.response(
+  //       res,
+  //       getAllMessage.status,
+  //       "success get data ",
+  //       getAllMessage.data
+  //     );
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // },
 };
