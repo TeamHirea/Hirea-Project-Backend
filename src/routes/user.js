@@ -11,11 +11,7 @@ Router.get("/", userController.getAllJobSeekers);
 
 // get user/jobseeker by id
 Router.get("/:id", userController.getJobSeekerById);
-Router.get(
-  "/recruiter/:id",
-  middleware.authentication,
-  userController.getRecruiterById
-);
+Router.get("/recruiter/:id", userController.getRecruiterById);
 Router.patch(
   `/recruiter/:id`,
   uploadFile.uploadRecruiter,
